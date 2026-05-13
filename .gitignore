@@ -1,0 +1,71 @@
+# ==============================================================
+# Python / Environment
+# ==============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env_virtual/
+*.env
+
+# ==============================================================
+# Jupyter Notebook / IDE
+# ==============================================================
+.ipynb_checkpoints
+.vscode/
+.idea/
+*.swp
+*.swo
+reference/*.md
+reference/*.pdf
+
+# ==============================================================
+# Project Specific (NLP Social Listening)
+# ==============================================================
+# Credentials & Secrets
+.env
+nlp_social_listening/.env
+cookies.json
+nlp_social_listening/cookies.json
+nlp_social_listening/config/.twitter_cookies.json
+nlp_social_listening/data/cookies/
+
+# Data Folders (Ignore raw, processed, and results data to avoid bloated git)
+# nlp_social_listening/data/raw/*.csv
+# nlp_social_listening/data/raw/*.json
+# nlp_social_listening/data/processed/*.csv
+# nlp_social_listening/data/results/*.csv
+
+# Output Folders (Optional: you might want to commit figures, but usually auto-generated stuff is ignored)
+# If you want to commit the generated figures/reports, comment these lines out:
+# nlp_social_listening/outputs/figures/*.png
+# nlp_social_listening/outputs/reports/*.md
+
+# Logs
+logs/
+*.log
+nlp_social_listening/*.log
+
+# Mac OS
+.DS_Store

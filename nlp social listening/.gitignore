@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+cookies.json
+data/raw/*.csv
+data/processed/*.csv
+data/results/*.csv
+outputs/figures/*.png
+outputs/scraping_log.txt
+.venv/

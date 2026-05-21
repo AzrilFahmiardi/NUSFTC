@@ -1,0 +1,12 @@
+label,sim_to_anchor,predicted_sentiment,bucket
+Variant A · Mango × Jasmine (food node),0.7335991511828803,46.93675745698021,HIGH
+Variant A · Mango × Jasmine (compound proxy Benzyl_Acetate),0.5431176616125802,38.826805263834395,MID-HIGH
+Variant A · Mango × Jasmine (compound proxy Linalool),0.526529250378377,38.12053599655223,MID-HIGH
+Variant A · Mango × Jasmine (compound proxy Jasmine_lactone),0.5910990714768192,40.86966486681487,MID-HIGH
+Variant B · Coconut × Milk Tea,0.792201030105175,49.43179483599508,HIGH
+Variant B · Coconut × Black Tea (no milk),0.712443789185478,46.03604539926445,MID-HIGH
+Baseline · Mango alone,0.6088697035411393,41.62626844445768,MID-HIGH
+Baseline · Vanilla alone (top performer in NLP),0.5644215038503185,39.73383902584524,MID-HIGH
+Baseline · Strawberry alone (lowest performer in NLP),0.2587680054072358,26.72031595001735,MID-LOW
+Variant A · Full product (yogurt + mango + jasmine_tea),0.6591294507515126,43.766130685325386,MID-HIGH
+Variant B · Full product (yogurt + coconut + black_tea + milk),0.7425972998659233,47.31986321602754,HIGH

@@ -1,9 +1,0 @@
-aspect,positive_pct,neutral_pct,negative_pct,avg_sentiment,mention_count
-bitterness,22.6,45.3,32.1,-0.048,106
-taste,31.3,46.1,22.6,0.083,822
-protein_content,30.8,47.0,22.2,0.08,1523
-sweetness,38.5,42.3,19.2,0.118,608
-value,28.4,54.1,17.6,0.101,74
-texture,37.8,47.4,14.8,0.128,508
-health,41.0,45.8,13.2,0.173,144
-mixability,25.4,62.5,12.0,0.089,299

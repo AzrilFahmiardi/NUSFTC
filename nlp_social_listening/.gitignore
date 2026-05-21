@@ -1,9 +1,0 @@
-.env
-cookies.json
-# data/raw/
-# data/processed/
-# data/results/
-outputs/
-__pycache__/
-*.pyc
-.ipynb_checkpoints/

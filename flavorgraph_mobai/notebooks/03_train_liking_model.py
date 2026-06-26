@@ -1,9 +1,16 @@
 """
-03 - Train liking-score predictor models with LOO-CV.
+03 - Diagnostic: can any liking-score model generalise at n=13? (Answer: no.)
+
+We deliberately test a panel of regressors with Leave-One-Out CV to establish,
+transparently, that direct liking-score prediction does NOT generalise on 13
+flavour samples (all LOO-CV R2 are negative — statistically expected for n=13).
+This is WHY the downstream module (04) uses FlavorGraph only as a molecular
+COMPATIBILITY SCREEN (ranking) rather than a liking predictor. We also persist
+the consumer-liked anchor centroid used by that screen.
 
 Outputs:
-- outputs/model_metrics.json: LOO-CV scores per model
-- data/trained_models.pkl: fitted Ridge + RF (on full data) for downstream prediction
+- outputs/model_metrics.json: LOO-CV scores per model (the honesty record)
+- data/trained_models.pkl: consumer-liked anchor centroid + reference metadata
 - outputs/loocv_predictions.csv: actual vs predicted per fold
 """
 import json
@@ -36,15 +43,21 @@ print(f"Loaded training data: X={X.shape}, y={y.shape}")
 # L2-normalise embeddings (best practice for cosine-based comparisons)
 X_norm = X / np.linalg.norm(X, axis=1, keepdims=True)
 
-# v3 feature: cosine similarity to "high-sentiment centroid" (top-3 flavors)
+# Consumer-liked anchor = centroid of the top-N highest-sentiment flavours.
+# NOTE: the correlation printed below is IN-SAMPLE (the anchor is built from the
+# same points it is correlated against), so it is descriptive only and inflated by
+# construction. The out-of-sample truth is in the LOO-CV table further down (the
+# sim_anchor fold recomputes the anchor from training data only). Do not quote the
+# in-sample number as predictive performance.
 N_ANCHOR = 5
 top_idx = np.argsort(y)[-N_ANCHOR:]
 top_centroid = X_norm[top_idx].mean(axis=0)
 top_centroid = top_centroid / np.linalg.norm(top_centroid)
 sim_to_top = cosine_similarity(X_norm, top_centroid.reshape(1, -1)).flatten()
-print(f"Top-3 anchor flavors (highest sentiment): {[names[i] for i in top_idx]}")
-print(f"Cosine sim to top centroid: range=[{sim_to_top.min():.3f}, {sim_to_top.max():.3f}]")
-print(f"Pearson corr(sim_to_top, y) = {np.corrcoef(sim_to_top, y)[0,1]:.3f}")
+print(f"Consumer-liked anchor flavours (top-{N_ANCHOR} sentiment): {[names[i] for i in top_idx]}")
+print(f"Cosine sim to anchor: range=[{sim_to_top.min():.3f}, {sim_to_top.max():.3f}]")
+print(f"In-sample (descriptive, inflated) Pearson corr(sim, y) = {np.corrcoef(sim_to_top, y)[0,1]:.3f}")
+print("  -> see LOO-CV table below for the honest out-of-sample picture")
 
 # Build feature variants
 X_sim_feat = sim_to_top.reshape(-1, 1)  # single feature: similarity to liked anchors

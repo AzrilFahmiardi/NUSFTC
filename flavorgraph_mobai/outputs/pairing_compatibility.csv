@@ -1,0 +1,12 @@
+label,compatibility_score,affinity_tier
+Variant A · Mango × Jasmine (food node),0.7335991511828803,HIGH
+Variant A · Mango × Jasmine (compound proxy Benzyl_Acetate),0.5431176616125802,MID-HIGH
+Variant A · Mango × Jasmine (compound proxy Linalool),0.526529250378377,MID-HIGH
+Variant A · Mango × Jasmine (compound proxy Jasmine_lactone),0.5910990714768192,MID-HIGH
+Variant B · Coconut × Milk Tea,0.792201030105175,HIGH
+Variant B · Coconut × Black Tea (no milk),0.712443789185478,HIGH
+Baseline · Mango alone,0.6088697035411393,MID-HIGH
+Baseline · Vanilla alone (top performer in NLP),0.5644215038503185,MID-HIGH
+Baseline · Strawberry alone (lowest performer in NLP),0.2587680054072358,LOW
+Variant A · Full product (yogurt + mango + jasmine_tea),0.6591294507515126,HIGH
+Variant B · Full product (yogurt + coconut + black_tea + milk),0.7425972998659233,HIGH

@@ -1,11 +1,19 @@
 """
-04 - Predict liking for MoBai Variant A (Mango × Jasmine) & Variant B (Coconut × Milk Tea),
-     then screen Variant C candidates via the embedding-based ranker.
+04 - Molecular pairing-compatibility screening for MoBai variants.
+
+This module does NOT predict a consumer liking score. With n=13 no liking model
+generalises (see 03 / model_metrics.json, all LOO-CV R2 negative). Instead we use
+FlavorGraph embeddings as a molecular-compatibility SCREEN: each candidate pairing
+gets a compatibility score = cosine similarity to the centroid of flavours that
+consumers already like (the "consumer-liked anchor", derived from NLP). The score
+RANKS candidates; it is not a liking percentage. Compatibility (food-pairing
+recommendation) is the task FlavorGraph was peer-reviewed for (Park et al. 2021).
+Final liking is validated downstream by a primary sensory panel (see survey design).
 
 Outputs:
-- outputs/pairing_predictions.csv
-- outputs/variant_c_top20.csv
-- outputs/variant_c_curated_top10.csv
+- outputs/pairing_compatibility.csv      Variant A/B + baseline compatibility scores
+- outputs/variant_c_top50.csv            Top 50 screened candidates (transparency)
+- outputs/variant_c_curated_top20.csv    Beverage-friendly curated shortlist
 """
 import pickle
 import pandas as pd
@@ -54,26 +62,36 @@ def combine(names, weights=None):
 # Recover anchor + training data
 anchor = trained["top_anchor_centroid"]
 anchor_flavors = trained["top_anchor_flavors"]
-y_mean = trained["training_y_mean"]
-y_min, y_max = trained["training_y_min"], trained["training_y_max"]
-print(f"Anchor flavors (high-sentiment centroid): {anchor_flavors}")
-print(f"Training y range: [{y_min}, {y_max}], mean={y_mean:.1f}")
+print(f"Consumer-liked anchor flavours (centroid of highest-sentiment NLP flavours): {anchor_flavors}")
 
-# Load training data to score it as a baseline reference
+# Load training flavours to establish the compatibility-score reference distribution.
 with open(DATA / "training_data.pkl", "rb") as f:
     td = pickle.load(f)
 X_train, y_train, names_train = td["X"], td["y"], td["names"]
 X_train_norm = X_train / np.linalg.norm(X_train, axis=1, keepdims=True)
 sim_train = cosine_similarity(X_train_norm, anchor.reshape(1, -1)).flatten()
 
-# Calibrate: linear map sim -> sentiment using training data
-# So we can produce point estimates with empirical anchoring
-from scipy.stats import linregress
-reg = linregress(sim_train, y_train)
-print(f"\nCalibration: sentiment = {reg.slope:.2f} * sim + {reg.intercept:.2f}  (R²={reg.rvalue**2:.3f})")
+# Affinity tiers are defined RELATIVE to the 13 NLP flavours' own compatibility
+# scores (mean / std of sim_train), so a tier means "more/less molecularly aligned
+# with consumer-liked flavours than a typical known flavour". No liking percentage
+# is fabricated from the cosine value.
+SIM_MEAN, SIM_STD = float(sim_train.mean()), float(sim_train.std())
+print(f"Reference compatibility (13 NLP flavours): mean={SIM_MEAN:.3f}, std={SIM_STD:.3f}")
+
+
+def affinity_tier(sim):
+    if sim >= SIM_MEAN + SIM_STD:
+        return "HIGH"
+    if sim >= SIM_MEAN:
+        return "MID-HIGH"
+    if sim >= SIM_MEAN - SIM_STD:
+        return "MID-LOW"
+    return "LOW"
 
 
 def predict(name_or_vec, label=""):
+    """Return molecular-compatibility score (cosine sim to consumer-liked anchor)
+    and a qualitative affinity tier. NOT a predicted liking score."""
     if isinstance(name_or_vec, str):
         v = vec(name_or_vec)
     else:
@@ -81,21 +99,11 @@ def predict(name_or_vec, label=""):
     if v is None:
         return None
     sim = float(cosine_similarity(v.reshape(1, -1), anchor.reshape(1, -1))[0, 0])
-    sent_est = reg.slope * sim + reg.intercept
-    # Bucket
-    if sent_est >= y_train.mean() + y_train.std():
-        bucket = "HIGH"
-    elif sent_est >= y_train.mean():
-        bucket = "MID-HIGH"
-    elif sent_est >= y_train.mean() - y_train.std():
-        bucket = "MID-LOW"
-    else:
-        bucket = "LOW"
-    return {"label": label, "sim_to_anchor": sim, "predicted_sentiment": sent_est, "bucket": bucket}
+    return {"label": label, "compatibility_score": sim, "affinity_tier": affinity_tier(sim)}
 
 
 # ===== Variant A & B =====
-print("\n=== Variant A & B predictions ===")
+print("\n=== Variant A & B molecular-compatibility screening ===")
 
 variant_specs = [
     {"label": "Variant A · Mango × Jasmine (food node)",
@@ -130,16 +138,16 @@ for spec in variant_specs:
         print(f"  SKIP {spec['label']} (missing node)")
         continue
     r = predict(spec["vector"], label=spec["label"])
-    print(f"  {r['bucket']:8s} sim={r['sim_to_anchor']:.3f}  pred={r['predicted_sentiment']:+.1f}%  {r['label']}")
+    print(f"  {r['affinity_tier']:8s} compatibility={r['compatibility_score']:.3f}  {r['label']}")
     records.append(r)
 
 pred_df = pd.DataFrame(records)
-pred_df.to_csv(OUT / "pairing_predictions.csv", index=False)
-print(f"\nSaved: {OUT / 'pairing_predictions.csv'}")
+pred_df.to_csv(OUT / "pairing_compatibility.csv", index=False)
+print(f"\nSaved: {OUT / 'pairing_compatibility.csv'}")
 
 
 # ===== Variant C screening =====
-print("\n=== Variant C: screening 6,000+ candidates ===")
+print("\n=== Variant C: screening candidate nodes for molecular compatibility ===")
 
 # Build candidate pool: all FlavorGraph nodes EXCEPT those in MoBai already
 mobai_used = set([
@@ -153,7 +161,8 @@ mobai_used = set([
 # MoBai base context: yogurt + black_tea (the "tea-yogurt base")
 base = combine(["yogurt", "black_tea"])
 
-# Predict for each candidate as: avg(base, candidate)
+# Score each candidate by molecular compatibility of (base + candidate) with the
+# consumer-liked anchor. Ranking only; no liking percentage is produced.
 results = []
 ids_all = list(emb.keys())
 for nid in ids_all:
@@ -165,20 +174,19 @@ for nid in ids_all:
     v_combined = (base + v_cand) / 2
     v_combined = v_combined / np.linalg.norm(v_combined)
     sim = float(cosine_similarity(v_combined.reshape(1, -1), anchor.reshape(1, -1))[0, 0])
-    sent_est = reg.slope * sim + reg.intercept
     results.append({
         "name": name,
         "node_id": nid,
         "node_type": id_to_type.get(nid),
         "is_hub": id_to_hub.get(nid),
-        "sim_to_anchor": sim,
-        "predicted_sentiment": sent_est,
+        "compatibility_score": sim,
+        "affinity_tier": affinity_tier(sim),
     })
 
-c_df = pd.DataFrame(results).sort_values("predicted_sentiment", ascending=False).reset_index(drop=True)
+c_df = pd.DataFrame(results).sort_values("compatibility_score", ascending=False).reset_index(drop=True)
 c_df["rank"] = c_df.index + 1
-print(f"Screened {len(c_df)} candidates")
-print("\nTop 20 (unfiltered):")
+print(f"Screened {len(c_df)} candidate nodes")
+print("\nTop 20 (unfiltered, by molecular compatibility):")
 print(c_df.head(20).to_string(index=False))
 c_df.head(50).to_csv(OUT / "variant_c_top50.csv", index=False)
 
@@ -192,6 +200,6 @@ c_df["category"] = c_df["name"].map(cat_map)
 c_curated = c_df[c_df["category"].isin(BEVERAGE_FRIENDLY_CATS)].head(20).reset_index(drop=True)
 c_curated["culinary_rank"] = c_curated.index + 1
 print("\nTop 10 (curated by FlavorGraph category - beverage-friendly only):")
-print(c_curated.head(10)[["culinary_rank", "name", "category", "sim_to_anchor", "predicted_sentiment"]].to_string(index=False))
+print(c_curated.head(10)[["culinary_rank", "name", "category", "compatibility_score", "affinity_tier"]].to_string(index=False))
 c_curated.to_csv(OUT / "variant_c_curated_top20.csv", index=False)
 print(f"\nSaved: {OUT / 'variant_c_curated_top20.csv'}")

@@ -37,8 +37,8 @@ env/
 .idea/
 *.swp
 *.swo
-reference/*.md
-reference/*.pdf
+# reference/*.md
+# reference/*.pdf
 
 # ==============================================================
 # Project Specific (NLP Social Listening)
@@ -69,3 +69,24 @@ nlp_social_listening/*.log
 
 # Mac OS
 .DS_Store
+
+# ==============================================================
+# Internal working docs (keep out of the public repo)
+# ==============================================================
+CLAUDE.md
+reports/
+reference/
+
+# ==============================================================
+# Project Specific (NLP Social China)
+# ==============================================================
+nlp_social_china/.env
+# MediaCrawler clone (heavy, has its own venv)
+nlp_social_china/third_party/
+# raw scraper dumps (bulky, regenerable)
+nlp_social_china/data/interim/
+nlp_social_china/data/raw/*.csv
+nlp_social_china/data/processed/*.csv
+nlp_social_china/data/results/*.csv
+nlp_social_china/cookies.json
+nlp_social_china/**/__pycache__/

@@ -2,7 +2,7 @@
 05 - Visualisasi untuk laporan. Versi Bahasa Indonesia, tanpa em-dash.
 Output:
 - outputs/tsne_mobai_subgraph.png
-- outputs/variant_predictions_bar.png
+- outputs/variant_compatibility_bar.png
 - outputs/sim_vs_sentiment_scatter.png
 - outputs/variant_c_top10.png
 - outputs/ai_stack_diagram.png
@@ -72,11 +72,6 @@ def combine(*names):
     v = np.mean(vecs, axis=0)
     return v / np.linalg.norm(v)
 
-variant_pts = {
-    "Varian A (Mangga x Melati)": combine("fresh_mango", "jasmine_tea"),
-    "Varian B (Kelapa x Teh Susu)": combine("coconut", "black_tea", "milk"),
-}
-
 fig, ax = plt.subplots(figsize=(10, 6.5))
 ax.scatter(sim_train, y_train, s=110, c=y_train, cmap="RdYlGn", edgecolor="black", zorder=3)
 
@@ -84,27 +79,27 @@ texts = []
 for i, n in enumerate(names_train):
     texts.append(ax.text(sim_train[i] + 0.005, y_train[i] + 0.5, n, fontsize=9))
 
-# Variant overlays
-v_xs, v_ys, v_labels = [], [], []
-for label, v in variant_pts.items():
-    sim = float(cosine_similarity(v.reshape(1, -1), anchor.reshape(1, -1))[0, 0])
-    pred = reg.slope * sim + reg.intercept
-    ax.scatter([sim], [pred], marker="*", s=420, c="gold", edgecolor="black", zorder=4)
-    texts.append(ax.text(sim + 0.005, pred + 0.5, label, fontsize=10, fontweight="bold", color="#7c1d1d"))
-    v_xs.append(sim); v_ys.append(pred)
-
 xs = np.linspace(sim_train.min() - 0.05, max(sim_train.max(), 0.85), 100)
 ax.plot(xs, reg.slope * xs + reg.intercept, "--", c="steelblue", alpha=0.7,
-        label=f"Garis kalibrasi linier (R kuadrat = {reg.rvalue**2:.2f}, Pearson r = {reg.rvalue:.2f})")
+        label=f"Tren in-sample (deskriptif): Pearson r = {reg.rvalue:.2f}")
 
 if HAVE_ADJUST_TEXT:
     adjust_text(texts, ax=ax, arrowprops=dict(arrowstyle="-", color="gray", lw=0.5))
 
-ax.set_xlabel("Kemiripan kosinus terhadap centroid sentimen tinggi (embedding FlavorGraph)")
+ax.set_xlabel("Skor kompatibilitas molekuler (kemiripan kosinus ke anchor flavor disukai konsumen)")
 ax.set_ylabel("Net sentimen konsumen (persen, dari NLP 5,021 tweet)")
-ax.set_title("Kurva Kalibrasi Liking-Score\nKemiripan FlavorGraph berkorelasi dengan sentimen konsumen (Pearson r = 0.60)")
+ax.set_title("Pemeriksaan Konsistensi (Deskriptif, In-Sample)\n"
+             "Skor kompatibilitas searah dengan sentimen NLP (r = 0.60). "
+             "BUKAN prediksi: LOO-CV R kuadrat negatif (lihat model_metrics.json)")
 ax.grid(alpha=0.3)
 ax.legend(loc="lower right")
+# Honesty annotation so the chart cannot be read as an out-of-sample predictor.
+ax.text(0.02, 0.97,
+        "Catatan: n=13. Plot ini menunjukkan konsistensi arah pada data yang sama\n"
+        "yang membangun anchor (in-sample), dipakai untuk RANKING/screening kandidat,\n"
+        "bukan untuk memprediksi skor kesukaan. Validasi kesukaan via panel sensori.",
+        transform=ax.transAxes, fontsize=8, va="top", color="#4b5563",
+        bbox=dict(boxstyle="round,pad=0.4", facecolor="#f9fafb", edgecolor="#d1d5db"))
 plt.tight_layout()
 plt.savefig(OUT / "sim_vs_sentiment_scatter.png", bbox_inches="tight")
 plt.close()
@@ -114,7 +109,7 @@ print("Saved: sim_vs_sentiment_scatter.png")
 # ===========================================
 # (2) Variant predictions bar
 # ===========================================
-pred_df = pd.read_csv(OUT / "pairing_predictions.csv")
+pred_df = pd.read_csv(OUT / "pairing_compatibility.csv")
 label_map = {
     "Variant B · Full product (yogurt + coconut + black_tea + milk)": "Varian B produk penuh (yogurt + kelapa + teh hitam + susu)",
     "Variant B · Coconut × Milk Tea": "Varian B (Kelapa x Teh Susu)",
@@ -127,31 +122,36 @@ label_map = {
 pick = list(label_map.keys())
 sub = pred_df[pred_df["label"].isin(pick)].copy()
 sub["display"] = sub["label"].map(label_map)
-sub = sub.sort_values("predicted_sentiment", ascending=True).reset_index(drop=True)
+sub = sub.sort_values("compatibility_score", ascending=True).reset_index(drop=True)
 
+# Colour by affinity tier relative to the 13 NLP flavours' compatibility distribution.
+sim_ref = pd.read_csv(OUT / "pairing_compatibility.csv")["compatibility_score"]
+ref_mean = float(sim_train.mean()); ref_std = float(sim_train.std())
 def color_for(val):
-    if val >= 45: return "#2ca02c"
-    if val >= 38: return "#1f77b4"
-    if val >= 30: return "#ff7f0e"
+    if val >= ref_mean + ref_std: return "#2ca02c"
+    if val >= ref_mean: return "#1f77b4"
+    if val >= ref_mean - ref_std: return "#ff7f0e"
     return "#d62728"
-colors = sub["predicted_sentiment"].apply(color_for)
+colors = sub["compatibility_score"].apply(color_for)
 
 fig, ax = plt.subplots(figsize=(11, 6))
-bars = ax.barh(sub["display"], sub["predicted_sentiment"], color=colors, edgecolor="black")
-for bar, val, sim in zip(bars, sub["predicted_sentiment"], sub["sim_to_anchor"]):
-    ax.text(val + 0.4, bar.get_y() + bar.get_height() / 2,
-            f" {val:.1f}%  (sim={sim:.2f})", va="center", fontsize=9)
-ax.axvline(x=y_train.mean(), color="gray", linestyle="--", alpha=0.6,
-           label=f"Rerata sentimen training ({y_train.mean():.0f}%)")
-ax.set_xlim(0, 65)
-ax.set_xlabel("Prediksi net sentimen konsumen (persen)")
-ax.set_title("Prediksi Liking Konsumen oleh Model AI\nVarian MoBai vs Baseline NLP")
+bars = ax.barh(sub["display"], sub["compatibility_score"], color=colors, edgecolor="black")
+for bar, val, tier in zip(bars, sub["compatibility_score"], sub["affinity_tier"]):
+    ax.text(val + 0.005, bar.get_y() + bar.get_height() / 2,
+            f" {val:.3f}  ({tier})", va="center", fontsize=9)
+ax.axvline(x=ref_mean, color="gray", linestyle="--", alpha=0.6,
+           label=f"Rerata kompatibilitas 13 flavor NLP ({ref_mean:.3f})")
+ax.set_xlim(0, max(0.85, float(sub["compatibility_score"].max()) + 0.08))
+ax.set_xlabel("Skor kompatibilitas molekuler (kemiripan kosinus ke anchor flavor disukai konsumen)")
+ax.set_title("Skor Kompatibilitas Molekuler FlavorGraph\n"
+             "Ranking/screening varian MoBai vs baseline. Bukan prediksi kesukaan; "
+             "kesukaan divalidasi panel sensori")
 ax.legend(loc="lower right")
 ax.grid(axis="x", alpha=0.3)
 plt.tight_layout()
-plt.savefig(OUT / "variant_predictions_bar.png", bbox_inches="tight")
+plt.savefig(OUT / "variant_compatibility_bar.png", bbox_inches="tight")
 plt.close()
-print("Saved: variant_predictions_bar.png")
+print("Saved: variant_compatibility_bar.png")
 
 
 # ===========================================
@@ -172,15 +172,16 @@ display_name = {
 }
 vc["display"] = vc["name"].map(lambda n: display_name.get(n, n))
 fig, ax = plt.subplots(figsize=(10, 5.5))
-bars = ax.barh(vc["display"], vc["predicted_sentiment"], color="#6baed6", edgecolor="black")
+bars = ax.barh(vc["display"], vc["compatibility_score"], color="#6baed6", edgecolor="black")
 cat_id = {"Fruit": "Buah", "Nut/Seed": "Kacang/Biji", "Beverage": "Minuman", "Spice": "Bumbu", "Flower": "Bunga"}
-for bar, val, cat in zip(bars, vc["predicted_sentiment"], vc["category"]):
+for bar, val, cat in zip(bars, vc["compatibility_score"], vc["category"]):
     cat_indo = cat_id.get(cat, cat)
-    ax.text(val + 0.3, bar.get_y() + bar.get_height() / 2,
-            f" {val:.1f}%  ({cat_indo})", va="center", fontsize=9)
-ax.set_xlabel("Prediksi net sentimen jika dipasangkan dengan basis yogurt + teh hitam (persen)")
-ax.set_title("Variant C Discovery: 10 Kandidat Terbaik untuk Minuman\nHasil screening 8.279 node FlavorGraph dengan filter kategori")
-ax.set_xlim(30, 50)
+    ax.text(val + 0.004, bar.get_y() + bar.get_height() / 2,
+            f" {val:.3f}  ({cat_indo})", va="center", fontsize=9)
+ax.set_xlabel("Skor kompatibilitas molekuler jika dipasangkan dengan basis yogurt + teh hitam")
+ax.set_title("Variant C Discovery: 10 Kandidat Teratas untuk Minuman\n"
+             "Hasil screening kompatibilitas molekuler pada node FlavorGraph dengan filter kategori")
+ax.set_xlim(float(vc["compatibility_score"].min()) - 0.05, float(vc["compatibility_score"].max()) + 0.06)
 ax.grid(axis="x", alpha=0.3)
 plt.tight_layout()
 plt.savefig(OUT / "variant_c_top10.png", bbox_inches="tight")
@@ -252,7 +253,7 @@ legend_elems = [
     Line2D([0], [0], marker="D", color="w", markerfacecolor="green", markeredgecolor="black", markersize=9, label="Kandidat Varian C top 10"),
 ]
 ax.legend(handles=legend_elems, loc="upper right")
-ax.set_title("Proyeksi 2D t-SNE dari ruang embedding FlavorGraph\nNode terkait MoBai disorot dari 8.297 node total")
+ax.set_title("Proyeksi 2D t-SNE dari ruang embedding FlavorGraph\nNode terkait MoBai disorot (8.297 node ber-embedding dari 8.298 node dataset)")
 ax.set_xlabel("Dimensi t-SNE 1")
 ax.set_ylabel("Dimensi t-SNE 2")
 ax.grid(alpha=0.2)
@@ -279,13 +280,13 @@ layers = [
     {"y": 5.4, "color": "#bae6fd",
      "title": "LAYER 2: Molecular AI (FlavorGraph)",
      "subtitle": "metapath2vec + Chemical Structure Prediction (Park et al., 2021)",
-     "input": "Input: 8.297 node bahan dan senyawa kimia, 147.179 edge",
-     "output": "Output: embedding 300 dimensi per bahan"},
+     "input": "Input: 8.298 node (6.653 bahan + 1.645 senyawa), 147.179 edge (dataset Park et al.)",
+     "output": "Output: embedding 300 dimensi per node (8.297 ber-embedding)"},
     {"y": 3.6, "color": "#bbf7d0",
-     "title": "LAYER 3: Liking-Score Predictor (kontribusi kami)",
-     "subtitle": "Cosine similarity ke centroid sentimen tinggi, kalibrasi linier",
-     "input": "Input: keluaran Layer 1 (skor) + keluaran Layer 2 (vektor)",
-     "output": "Output: prediksi liking untuk kombinasi flavor apapun"},
+     "title": "LAYER 3: Flavor-Pairing Recommender (kontribusi kami)",
+     "subtitle": "Skor kompatibilitas molekuler ke anchor flavor disukai konsumen (screening/ranking)",
+     "input": "Input: keluaran Layer 1 (flavor disukai) + keluaran Layer 2 (vektor)",
+     "output": "Output: ranking kompatibilitas + shortlist kandidat (divalidasi panel sensori)"},
     {"y": 1.8, "color": "#fecaca",
      "title": "LAYER 4: Product Science",
      "subtitle": "Stack masking off-note 5 mekanisme (Best 2025, Tian 2020, JAFC 2024)",
@@ -311,7 +312,7 @@ for i in range(len(layers) - 1):
 
 ax.text(6.5, 8.6, "Arsitektur Pipeline AI MoBai (4 Lapis)", fontsize=16,
         fontweight="bold", ha="center")
-ax.text(6.5, 8.2, "Dari bahasa konsumen menuju embedding molekuler, prediksi liking, dan formulasi produk",
+ax.text(6.5, 8.2, "Dari bahasa konsumen menuju embedding molekuler, screening kompatibilitas, dan formulasi produk",
         fontsize=10.5, ha="center", style="italic", color="#4b5563")
 
 plt.savefig(OUT / "ai_stack_diagram.png", bbox_inches="tight")

@@ -1,0 +1,80 @@
+compound,bitter_probability,status,molecular_weight
+tryptophan,0.918,bitter risk,204.23
+borneol,0.216,safe,154.25
+geraniol,0.124,safe,154.25
+gamma-decalactone,0.13,safe,170.25
+naringenin,0.694,bitter risk,272.25
+isoleucine,0.894,bitter risk,131.17
+nonanal,0.152,safe,142.24
+cis-jasmone,0.284,safe,164.24
+phenylalanine,0.894,bitter risk,165.19
+alpha-phellandrene,0.408,safe,136.24
+caprylic acid,0.286,safe,144.21
+benzyl acetate,0.14,safe,150.17
+limonene,0.242,safe,136.24
+valine,0.88,bitter risk,117.15
+dodecanoic acid,0.286,safe,200.32
+dimethyl sulfide,0.176,safe,62.13
+maltol,0.156,safe,126.11
+turmerone,0.358,safe,218.33
+dimethyl disulfide,0.178,safe,94.2
+gamma-nonalactone,0.166,safe,156.22
+capric acid,0.286,safe,172.26
+lactic acid,0.576,bitter risk,90.08
+sucrose,0.056,safe,342.3
+glucose,0.09,safe,180.16
+isoamyl acetate,0.314,safe,130.18
+citric acid,0.32,safe,192.12
+quinine,0.774,bitter risk,324.4
+2-methylpyrazine,0.256,safe,94.11
+heptanal,0.152,safe,114.19
+2-acetyl-1-pyrroline,0.29,safe,111.14
+benzyl benzoate,0.262,safe,212.24
+benzaldehyde,0.272,safe,106.12
+octanoic acid,0.286,safe,144.21
+pyrazine,0.26,safe,80.09
+phenylacetaldehyde,0.296,safe,120.15
+alpha-terpinolene,0.198,safe,136.24
+diacetyl,0.216,safe,86.09
+leucine,0.912,bitter risk,131.17
+ethyl butanoate,0.166,safe,116.16
+acetoin,0.43,safe,88.11
+beta-ionone,0.202,safe,192.3
+beta-myrcene,0.174,safe,136.24
+gingerol,0.328,safe,294.39
+3-carene,0.248,safe,136.24
+theaflavin,0.662,bitter risk,564.5
+2-heptanone,0.208,safe,114.19
+malic acid,0.5,safe,134.09
+methyl jasmonate,0.2,safe,224.3
+ethyl acetate,0.066,safe,88.11
+ethyl butyrate,0.166,safe,116.16
+cyclodextrin,0.612,bitter risk,1135.0
+"4-hydroxy-2,5-dimethyl-3(2H)-furanone",0.21,safe,128.13
+hexanal,0.152,safe,100.16
+decanoic acid,0.286,safe,172.26
+vanillin,0.116,safe,152.15
+citronellol,0.34,safe,156.27
+ethyl hexanoate,0.132,safe,144.21
+methylheptanone,0.456,safe,114.19
+acetic acid,0.288,safe,60.05
+alpha-pinene,0.212,safe,136.24
+catechin,0.402,safe,290.27
+zinc gluconate,0.36,safe,455.7
+lauric acid,0.286,safe,200.32
+delta-octalactone,0.166,safe,142.2
+acetaldehyde,0.106,safe,44.05
+citral,0.112,safe,152.23
+caffeine,0.7,bitter risk,194.19
+limonin,0.848,bitter risk,470.5
+indole,0.324,safe,117.15
+delta-decalactone,0.13,safe,170.25
+linalool,0.07,safe,154.25
+camphor,0.262,safe,152.23
+phenylethyl alcohol,0.322,safe,122.16
+butyric acid,0.318,safe,88.11
+alpha-farnesene,0.17,safe,204.35
+ethyl vanillin,0.204,safe,166.17
+gamma-terpinene,0.408,safe,136.24
+alpha-terpineol,0.204,safe,154.25
+sodium chloride,0.192,safe,58.44

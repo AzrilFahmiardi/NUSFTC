@@ -77,6 +77,21 @@ CLAUDE.md
 reports/
 reference/
 
+# Claude Code workspace and internal tooling
+.claude/
+
+# Subproject in active development, not yet ready for public release
+nlp_social_china/
+
+# Consumer validation survey: internal until real field responses are collected.
+# These are placeholder artifacts and must not appear in the public repo.
+flavor_pairing/notebooks/_generate_survey_sim.py
+flavor_pairing/notebooks/06_survey_analysis.py
+flavor_pairing/data/survey_responses_simulated.csv
+flavor_pairing/outputs/survey_compatibility_vs_liking.png
+flavor_pairing/outputs/survey_liking_bar.png
+flavor_pairing/outputs/survey_results.json
+
 # ==============================================================
 # Project Specific (NLP Social China)
 # ==============================================================

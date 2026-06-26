@@ -1,5 +1,5 @@
 """
-05 - Visualisasi untuk laporan. Versi Bahasa Indonesia, tanpa em-dash.
+05 - Figures for the deck and report. English, no em-dash.
 Output:
 - outputs/tsne_mobai_subgraph.png
 - outputs/variant_compatibility_bar.png
@@ -81,23 +81,23 @@ for i, n in enumerate(names_train):
 
 xs = np.linspace(sim_train.min() - 0.05, max(sim_train.max(), 0.85), 100)
 ax.plot(xs, reg.slope * xs + reg.intercept, "--", c="steelblue", alpha=0.7,
-        label=f"Tren in-sample (deskriptif): Pearson r = {reg.rvalue:.2f}")
+        label=f"In-sample trend (descriptive): Pearson r = {reg.rvalue:.2f}")
 
 if HAVE_ADJUST_TEXT:
     adjust_text(texts, ax=ax, arrowprops=dict(arrowstyle="-", color="gray", lw=0.5))
 
-ax.set_xlabel("Skor kompatibilitas molekuler (kemiripan kosinus ke anchor flavor disukai konsumen)")
-ax.set_ylabel("Net sentimen konsumen (persen, dari NLP 5,021 tweet)")
-ax.set_title("Pemeriksaan Konsistensi (Deskriptif, In-Sample)\n"
-             "Skor kompatibilitas searah dengan sentimen NLP (r = 0.60). "
-             "BUKAN prediksi: LOO-CV R kuadrat negatif (lihat model_metrics.json)")
+ax.set_xlabel("Molecular compatibility score (cosine similarity to consumer-liked anchor)")
+ax.set_ylabel("Net consumer sentiment (percent, from NLP on 5,021 tweets)")
+ax.set_title("Consistency check (descriptive, in-sample)\n"
+             "Compatibility tracks NLP sentiment (r = 0.60). "
+             "Not a predictor: LOO-CV R squared is negative (see model_metrics.json)")
 ax.grid(alpha=0.3)
 ax.legend(loc="lower right")
 # Honesty annotation so the chart cannot be read as an out-of-sample predictor.
 ax.text(0.02, 0.97,
-        "Catatan: n=13. Plot ini menunjukkan konsistensi arah pada data yang sama\n"
-        "yang membangun anchor (in-sample), dipakai untuk RANKING/screening kandidat,\n"
-        "bukan untuk memprediksi skor kesukaan. Validasi kesukaan via panel sensori.",
+        "Note: n=13. This plot shows directional consistency on the same data\n"
+        "that builds the anchor (in-sample); it is used to RANK/screen candidates,\n"
+        "not to predict liking scores. Liking is validated by a sensory panel.",
         transform=ax.transAxes, fontsize=8, va="top", color="#4b5563",
         bbox=dict(boxstyle="round,pad=0.4", facecolor="#f9fafb", edgecolor="#d1d5db"))
 plt.tight_layout()
@@ -111,13 +111,13 @@ print("Saved: sim_vs_sentiment_scatter.png")
 # ===========================================
 pred_df = pd.read_csv(OUT / "pairing_compatibility.csv")
 label_map = {
-    "Variant B · Full product (yogurt + coconut + black_tea + milk)": "Varian B produk penuh (yogurt + kelapa + teh hitam + susu)",
-    "Variant B · Coconut × Milk Tea": "Varian B (Kelapa x Teh Susu)",
-    "Variant A · Mango × Jasmine (food node)": "Varian A (Mangga x Melati, food node)",
-    "Variant A · Full product (yogurt + mango + jasmine_tea)": "Varian A produk penuh (yogurt + mangga + teh melati)",
-    "Baseline · Mango alone": "Baseline: Mangga saja",
-    "Baseline · Vanilla alone (top performer in NLP)": "Baseline: Vanila saja (peringkat 2 NLP)",
-    "Baseline · Strawberry alone (lowest performer in NLP)": "Baseline: Stroberi saja (peringkat terendah NLP)",
+    "Variant B · Full product (yogurt + coconut + black_tea + milk)": "Variant B full product (yogurt + coconut + black tea + milk)",
+    "Variant B · Coconut × Milk Tea": "Variant B (Coconut x Milk Tea)",
+    "Variant A · Mango × Jasmine (food node)": "Variant A (Mango x Jasmine, food node)",
+    "Variant A · Full product (yogurt + mango + jasmine_tea)": "Variant A full product (yogurt + mango + jasmine tea)",
+    "Baseline · Mango alone": "Baseline: Mango alone",
+    "Baseline · Vanilla alone (top performer in NLP)": "Baseline: Vanilla alone (2nd in NLP)",
+    "Baseline · Strawberry alone (lowest performer in NLP)": "Baseline: Strawberry alone (lowest in NLP)",
 }
 pick = list(label_map.keys())
 sub = pred_df[pred_df["label"].isin(pick)].copy()
@@ -140,12 +140,12 @@ for bar, val, tier in zip(bars, sub["compatibility_score"], sub["affinity_tier"]
     ax.text(val + 0.005, bar.get_y() + bar.get_height() / 2,
             f" {val:.3f}  ({tier})", va="center", fontsize=9)
 ax.axvline(x=ref_mean, color="gray", linestyle="--", alpha=0.6,
-           label=f"Rerata kompatibilitas 13 flavor NLP ({ref_mean:.3f})")
+           label=f"Mean compatibility of 13 NLP flavors ({ref_mean:.3f})")
 ax.set_xlim(0, max(0.85, float(sub["compatibility_score"].max()) + 0.08))
-ax.set_xlabel("Skor kompatibilitas molekuler (kemiripan kosinus ke anchor flavor disukai konsumen)")
-ax.set_title("Skor Kompatibilitas Molekuler FlavorGraph\n"
-             "Ranking/screening varian MoBai vs baseline. Bukan prediksi kesukaan; "
-             "kesukaan divalidasi panel sensori")
+ax.set_xlabel("Molecular compatibility score (cosine similarity to consumer-liked anchor)")
+ax.set_title("FlavorGraph Molecular Compatibility\n"
+             "Screening/ranking of MoBai variants vs baselines. Not a liking prediction; "
+             "liking is validated by a sensory panel")
 ax.legend(loc="lower right")
 ax.grid(axis="x", alpha=0.3)
 plt.tight_layout()
@@ -159,28 +159,26 @@ print("Saved: variant_compatibility_bar.png")
 # ===========================================
 vc = pd.read_csv(OUT / "variant_c_curated_top20.csv").head(10).iloc[::-1].reset_index(drop=True)
 display_name = {
-    "crushed_pineapple": "Nanas cincang",
+    "crushed_pineapple": "Crushed pineapple",
     "pecan": "Pecan",
-    "macadamia_nut": "Kacang macadamia",
-    "papaya": "Pepaya",
-    "sweetened_condensed_milk": "Susu kental manis",
-    "nut": "Kacang umum",
-    "date": "Kurma",
-    "ground_nutmeg": "Pala bubuk",
-    "crushed_red_pepper_flake": "Cabai bubuk kasar",
-    "fresh_lime_juice": "Perasan jeruk nipis segar",
+    "macadamia_nut": "Macadamia nut",
+    "papaya": "Papaya",
+    "sweetened_condensed_milk": "Sweetened condensed milk",
+    "nut": "Nut (general)",
+    "date": "Date",
+    "ground_nutmeg": "Ground nutmeg",
+    "crushed_red_pepper_flake": "Crushed red pepper flake",
+    "fresh_lime_juice": "Fresh lime juice",
 }
 vc["display"] = vc["name"].map(lambda n: display_name.get(n, n))
 fig, ax = plt.subplots(figsize=(10, 5.5))
 bars = ax.barh(vc["display"], vc["compatibility_score"], color="#6baed6", edgecolor="black")
-cat_id = {"Fruit": "Buah", "Nut/Seed": "Kacang/Biji", "Beverage": "Minuman", "Spice": "Bumbu", "Flower": "Bunga"}
 for bar, val, cat in zip(bars, vc["compatibility_score"], vc["category"]):
-    cat_indo = cat_id.get(cat, cat)
     ax.text(val + 0.004, bar.get_y() + bar.get_height() / 2,
-            f" {val:.3f}  ({cat_indo})", va="center", fontsize=9)
-ax.set_xlabel("Skor kompatibilitas molekuler jika dipasangkan dengan basis yogurt + teh hitam")
-ax.set_title("Variant C Discovery: 10 Kandidat Teratas untuk Minuman\n"
-             "Hasil screening kompatibilitas molekuler pada node FlavorGraph dengan filter kategori")
+            f" {val:.3f}  ({cat})", va="center", fontsize=9)
+ax.set_xlabel("Molecular compatibility score when paired with the yogurt + black tea base")
+ax.set_title("Variant C Discovery: Top 10 Beverage-Friendly Candidates\n"
+             "Molecular-compatibility screen over FlavorGraph nodes with category filter")
 ax.set_xlim(float(vc["compatibility_score"].min()) - 0.05, float(vc["compatibility_score"].max()) + 0.06)
 ax.grid(axis="x", alpha=0.3)
 plt.tight_layout()
@@ -247,15 +245,15 @@ if HAVE_ADJUST_TEXT:
                 force_text=(0.7, 0.9), force_points=(0.5, 0.7))
 
 legend_elems = [
-    Line2D([0], [0], marker="o", color="w", markerfacecolor="lightgray", markersize=8, label="Node lain (sampel acak)"),
-    Line2D([0], [0], marker="o", color="w", markerfacecolor="orange", markeredgecolor="black", markersize=10, label="Flavor training NLP (13)"),
-    Line2D([0], [0], marker="*", color="w", markerfacecolor="red", markeredgecolor="black", markersize=14, label="Bahan MoBai (Varian A/B)"),
-    Line2D([0], [0], marker="D", color="w", markerfacecolor="green", markeredgecolor="black", markersize=9, label="Kandidat Varian C top 10"),
+    Line2D([0], [0], marker="o", color="w", markerfacecolor="lightgray", markersize=8, label="Other nodes (random sample)"),
+    Line2D([0], [0], marker="o", color="w", markerfacecolor="orange", markeredgecolor="black", markersize=10, label="NLP training flavors (13)"),
+    Line2D([0], [0], marker="*", color="w", markerfacecolor="red", markeredgecolor="black", markersize=14, label="MoBai ingredients (Variant A/B)"),
+    Line2D([0], [0], marker="D", color="w", markerfacecolor="green", markeredgecolor="black", markersize=9, label="Variant C top 10 candidates"),
 ]
 ax.legend(handles=legend_elems, loc="upper right")
-ax.set_title("Proyeksi 2D t-SNE dari ruang embedding FlavorGraph\nNode terkait MoBai disorot (8.297 node ber-embedding dari 8.298 node dataset)")
-ax.set_xlabel("Dimensi t-SNE 1")
-ax.set_ylabel("Dimensi t-SNE 2")
+ax.set_title("2D t-SNE projection of the FlavorGraph embedding space\nMoBai-related nodes highlighted (8,297 embedded of 8,298 dataset nodes)")
+ax.set_xlabel("t-SNE dimension 1")
+ax.set_ylabel("t-SNE dimension 2")
 ax.grid(alpha=0.2)
 plt.tight_layout()
 plt.savefig(OUT / "tsne_mobai_subgraph.png", bbox_inches="tight")
@@ -275,23 +273,23 @@ layers = [
     {"y": 7.2, "color": "#fde68a",
      "title": "LAYER 1: Consumer Voice",
      "subtitle": "VADER, TextBlob, TF-IDF, K-Means (NLP Social Listening)",
-     "input": "Input: 5.021 tweet konsumen",
-     "output": "Output: skor sentimen per flavor (13 flavor), 5 segmen konsumen, 9 pain point"},
+     "input": "Input: 5,021 consumer tweets",
+     "output": "Output: net sentiment per flavor (13 flavors), 5 consumer segments, 9 pain points"},
     {"y": 5.4, "color": "#bae6fd",
      "title": "LAYER 2: Molecular AI (FlavorGraph)",
      "subtitle": "metapath2vec + Chemical Structure Prediction (Park et al., 2021)",
-     "input": "Input: 8.298 node (6.653 bahan + 1.645 senyawa), 147.179 edge (dataset Park et al.)",
-     "output": "Output: embedding 300 dimensi per node (8.297 ber-embedding)"},
+     "input": "Input: 8,298 nodes (6,653 ingredients + 1,645 compounds), 147,179 edges (Park et al. dataset)",
+     "output": "Output: 300-dim embedding per node (8,297 embedded)"},
     {"y": 3.6, "color": "#bbf7d0",
-     "title": "LAYER 3: Flavor-Pairing Recommender (kontribusi kami)",
-     "subtitle": "Skor kompatibilitas molekuler ke anchor flavor disukai konsumen (screening/ranking)",
-     "input": "Input: keluaran Layer 1 (flavor disukai) + keluaran Layer 2 (vektor)",
-     "output": "Output: ranking kompatibilitas + shortlist kandidat (divalidasi panel sensori)"},
+     "title": "LAYER 3: Flavor-Pairing Recommender (our contribution)",
+     "subtitle": "Molecular compatibility to a consumer-liked anchor (screening / ranking)",
+     "input": "Input: Layer 1 output (liked flavors) + Layer 2 output (vectors)",
+     "output": "Output: compatibility ranking + candidate shortlist (validated by sensory panel)"},
     {"y": 1.8, "color": "#fecaca",
      "title": "LAYER 4: Product Science",
-     "subtitle": "Stack masking off-note 5 mekanisme (Best 2025, Tian 2020, JAFC 2024)",
-     "input": "Input: Variant A dan B dari Layer 3",
-     "output": "Output: formulasi produk MoBai"},
+     "subtitle": "5-mechanism off-note masking stack (Best 2025, Tian 2020, JAFC 2024)",
+     "input": "Input: Variant A and B from Layer 3",
+     "output": "Output: MoBai product formulation"},
 ]
 
 for L in layers:
@@ -310,13 +308,13 @@ for i in range(len(layers) - 1):
     ax.annotate("", xy=(6.5, y_to), xytext=(6.5, y_from),
                 arrowprops=dict(arrowstyle="->", lw=2, color="#374151"))
 
-ax.text(6.5, 8.6, "Arsitektur Pipeline AI MoBai (4 Lapis)", fontsize=16,
+ax.text(6.5, 8.6, "MoBai AI Pipeline Architecture (4 Layers)", fontsize=16,
         fontweight="bold", ha="center")
-ax.text(6.5, 8.2, "Dari bahasa konsumen menuju embedding molekuler, screening kompatibilitas, dan formulasi produk",
+ax.text(6.5, 8.2, "From consumer language to molecular embeddings, compatibility screening, and product formulation",
         fontsize=10.5, ha="center", style="italic", color="#4b5563")
 
 plt.savefig(OUT / "ai_stack_diagram.png", bbox_inches="tight")
 plt.close()
 print("Saved: ai_stack_diagram.png")
 
-print("\nSemua visualisasi selesai.")
+print("\nAll figures done.")

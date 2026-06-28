@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoBai 茉白 - R&D Dashboard v2.1 | NO Processing COGS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --dark-green: #1B4D3E;
+      --medium-green: #2E7D60;
+      --light-green: #E8F5F0;
+      --accent-gold: #C9A227;
+      --white: #FFFFFF;
+      --black: #1A1A1A;
+      --gray: #6B7B8C;
+      --red: #C43B2B;
+      --orange: #E67E22;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, var(--dark-green) 0%, #0a1a14 100%);
+      min-height: 100vh;
+      color: var(--white);
+      padding: 24px;
+    }
+    
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    .header { text-align: center; margin-bottom: 32px; }
+    .header h1 { font-size: 36px; margin-bottom: 8px; }
+    .header .subtitle { color: var(--light-green); opacity: 0.9; }
+    .note-box {
+      padding: 12px 20px;
+      background: #C43B2B22;
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--red);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .tabs { display: flex; gap: 12px; margin-bottom: 24px; }
+    .tab {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      background: rgba(255,255,255,0.05);
+      color: var(--white);
+      transition: all 0.3s;
+    }
+    .tab.active { background: var(--accent-gold); color: var(--black); }
+    
+    .variant-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .variant-card {
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.03);
+      border: 2px solid transparent;
+      transition: all 0.3s;
+    }
+    .variant-card.selected { border-color: var(--medium-green); background: #2E7D6033; }
+    .variant-name { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .variant-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 11px; color: var(--gray); }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px; }
+    
+    .card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      border: 1px solid #C9A22733;
+      padding: 24px;
+    }
+    .card-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+    
+    .section { margin-bottom: 20px; }
+    .section-title { font-size: 14px; font-weight: 600; color: var(--accent-gold); margin-bottom: 12px; }
+    
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metric-box { padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; text-align: center; }
+    .metric-value { font-size: 20px; font-weight: 700; }
+    .metric-label { font-size: 10px; color: var(--gray); }
+    
+    .allergen-tag { display: inline-block; padding: 4px 12px; border-radius: 6px; background: #C43B2B33; color: var(--red); font-size: 12px; margin-right: 8px; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: var(--gray); }
+    td { padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
+    
+    .cost-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+    .total-row { display: flex; justify-content: space-between; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); font-weight: 600; }
+    
+    .progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+    .progress-fill { height: 100%; border-radius: 4px; background: var(--medium-green); transition: width 0.5s; }
+    
+    .test-card {
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border-left: 4px solid;
+    }
+    .test-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .test-name { font-weight: 600; }
+    .test-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .test-date { font-size: 10px; color: var(--gray); margin-bottom: 8px; }
+    .test-params { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 8px; font-size: 11px; }
+    .test-note { font-size: 11px; color: var(--light-green); font-style: italic; }
+    
+    .validation-card { padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 12px; border-left: 4px solid; }
+    
+    .ing-item { padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
+    .ing-header { display: flex; justify-content: space-between; }
+    .ing-cost { text-align: right; }
+    .ing-name { font-size: 13px; font-weight: 500; }
+    .ing-zh { font-size: 11px; color: var(--gray); margin-left: 8px; }
+    .ing-price { font-size: 12px; color: var(--accent-gold); }
+    .ing-supplier { font-size: 9px; color: var(--gray); }
+    
+    .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); color: var(--gray); font-size: 12px; }
+    
+    .note-text { margin-top: 20px; padding: 12px; background: #1B4D3E44; border-radius: 8px; font-size: 12px; color: var(--gray); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>MoBai 茉白</h1>
+      <p class="subtitle">R&D Formulation & COGS Dashboard | Protein Yogurt RTD Platform</p>
+      <div class="prototype-banner" style="padding: 16px; background: #FF980033; border: 2px solid #FF9800; border-radius: 12px; margin-bottom: 20px; text-align: center; color: #FF9800; font-size: 14px; font-weight: 600;">
+        📋 CURRENT STATUS: Concept Validation Only | No physical prototype exists yet.
+        <br>
+        <span style="font-weight: normal; font-size: 12px; color: #FFE0B2;">
+          Completed: AI Validation, Consumer NLP, Molecular Verification | Pending: Bench Formulation, Sensory Testing, Pilot Production
+        </span>
+      </div>
+      <div class="note-box">
+        ⚠️ NO Processing Cost Included | COGS = Ingredients + Packaging Only | Co-packer handles processing
+      </div>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('formulation')">📋 Formulation</button>
+      <button class="tab" onclick="showTab('cogs')">💰 COGS Analysis</button>
+      <button class="tab" onclick="showTab('testing')">🔬 Test Results</button>
+    </div>
+    
+    <div id="formulation-tab">
+      <div class="variant-grid">
+        <div class="variant-card selected" onclick="selectVariant('A')">
+          <div class="variant-name">Variant A: Mango Jasmine</div>
+          <div class="variant-stats">
+            <div>Protein: 12g</div>
+            <div>COGS: $0.227</div>
+            <div>Margin: 69.2%</div>
+          </div>
+        </div>
+        <div class="variant-card" onclick="selectVariant('B')">
+          <div class="variant-name">Variant B: Coconut Milk Tea</div>
+          <div class="variant-stats">
+            <div>Protein: 12g</div>
+            <div>COGS: $0.253</div>
+            <div>Margin: 67.8%</div>
+          </div>
+        </div>
+        <div class="variant-card" onclick="selectVariant('C')">
+          <div class="variant-name">Variant C: Tea Osmanthus</div>
+          <div class="variant-stats">
+            <div>Protein: 12g</div>
+            <div>COGS: $0.220</div>
+            <div>Margin: 70.3%</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid">
+        <div class="card">
+          <h3 class="card-title" id="variant-title">Variant A: Mango Jasmine 芒果茉莉</h3>
+          
+          <div class="section">
+            <div class="section-title">Nutrition Facts (per 240mL)</div>
+            <div class="metrics-grid">
+              <div class="metric-box"><div class="metric-value">145</div><div class="metric-label">Calories</div></div>
+              <div class="metric-box"><div class="metric-value" style="color:var(--medium-green)">12g</div><div class="metric-label">Protein</div></div>
+              <div class="metric-box"><div class="metric-value">2.4g</div><div class="metric-label">Sugar</div></div>
+              <div class="metric-box"><div class="metric-value">0.7g</div><div class="metric-label">Fiber</div></div>
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Allergens</div>
+            <span class="allergen-tag">Milk</span>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Formulation (per 240mL)</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th style="text-align:right">%</th>
+                  <th style="text-align:right">Cost</th>
+                </tr>
+              </thead>
+              <tbody id="ingredient-table">
+                <tr><td>Fermented Milk Base</td><td style="text-align:right">62.00%</td><td style="text-align:right">$0.047</td></tr>
+                <tr><td>Whey Protein Isolate 90%</td><td style="text-align:right">5.20%</td><td style="text-align:right">$0.023</td></tr>
+                <tr><td>Low Methoxyl Pectin</td><td style="text-align:right">0.12%</td><td style="text-align:right">$0.001</td></tr>
+                <tr><td>Konjac Glucomannan</td><td style="text-align:right">0.15%</td><td style="text-align:right">$0.001</td></tr>
+                <tr><td>Erythritol</td><td style="text-align:right">4.00%</td><td style="text-align:right">$0.004</td></tr>
+                <tr><td>Monk Fruit Extract</td><td style="text-align:right">0.02%</td><td style="text-align:right">$0.001</td></tr>
+                <tr><td>Natural Mango Extract</td><td style="text-align:right">0.50%</td><td style="text-align:right">$0.011</td></tr>
+                <tr><td>Jasmine Tea Extract</td><td style="text-align:right">0.30%</td><td style="text-align:right">$0.009</td></tr>
+                <tr><td>Vitamin C</td><td style="text-align:right">0.03%</td><td style="text-align:right">$0.000</td></tr>
+                <tr><td>Vitamin D3</td><td style="text-align:right">0.002%</td><td style="text-align:right">$0.000</td></tr>
+                <tr><td>L. acidophilus</td><td style="text-align:right">0.01%</td><td style="text-align:right">$0.020</td></tr>
+                <tr><td>Citric Acid</td><td style="text-align:right">0.15%</td><td style="text-align:right">$0.000</td></tr>
+                <tr><td>Lactic Acid 80%</td><td style="text-align:right">0.10%</td><td style="text-align:right">$0.000</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3 class="card-title">COGS Breakdown (No Processing)</h3>
+          
+          <div class="section">
+            <div class="section-title">Cost Components</div>
+            <div class="cost-row"><span>Ingredients</span><span>$0.142</span></div>
+            <div class="cost-row"><span>Packaging (240mL PET)</span><span>$0.085</span></div>
+            <div class="cost-row" style="color:var(--gray);font-size:11px"><span>Processing (Co-packer)</span><span style="color:var(--medium-green)">$0.000 (excluded)</span></div>
+            <div class="total-row"><span>Total COGS</span><span style="color:var(--accent-gold);font-size:18px">$0.227</span></div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Margin Analysis</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:69%"></div></div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--gray)">
+              <span>Gross Margin</span>
+              <span style="font-weight:600;color:var(--medium-green)">69.2%</span>
+            </div>
+          </div>
+          
+          <div class="metrics-grid">
+            <div class="metric-box"><div class="metric-value" style="color:var(--accent-gold)">$0.227</div><div class="metric-label">COGS</div></div>
+            <div class="metric-box"><div class="metric-value">$3.00</div><div class="metric-label">Retail SGD</div></div>
+            <div class="metric-box"><div class="metric-value">$1.80</div><div class="metric-label">Wholesale</div></div>
+          </div>
+          
+          <div class="note-text">
+            <strong style="color:var(--accent-gold)">Note:</strong> Processing cost handled by co-packer (Master Kong / external manufacturer). 
+            Actual processing fees negotiated separately based on volume and facility.
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="cogs-tab" style="display:none">
+      <div class="grid">
+        <div class="card">
+          <h3 class="card-title">AI Flavor Validation Results (REAL DATA)</h3>
+          
+          <div class="validation-card" style="border-left-color:var(--medium-green)">
+            <div class="test-header">
+              <span class="test-name">Variant A: Mango Jasmine</span>
+              <span class="test-badge" style="background:#2E7D6033;color:var(--medium-green)">VALIDATED</span>
+            </div>
+            <div class="test-params">
+              <div>AI Score: <strong>46.9%</strong></div>
+              <div>Molecular: <strong>0.9998</strong></div>
+              <div>Sentiment: <strong>+53%</strong></div>
+            </div>
+            <div class="test-note">PROCEED - Strong molecular compatibility and positive consumer signal</div>
+          </div>
+          
+          <div class="validation-card" style="border-left-color:var(--medium-green)">
+            <div class="test-header">
+              <span class="test-name">Variant B: Coconut Milk Tea</span>
+              <span class="test-badge" style="background:#2E7D6033;color:var(--medium-green)">VALIDATED</span>
+            </div>
+            <div class="test-params">
+              <div>AI Score: <strong>49.4%</strong></div>
+              <div>Molecular: <strong>0.9967</strong></div>
+              <div>Sentiment: <strong>+41%</strong></div>
+            </div>
+            <div class="test-note">PROCEED - Creamy profile validated, milk tea familiar to APAC consumers</div>
+          </div>
+          
+          <div class="validation-card" style="border-left-color:var(--orange)">
+            <div class="test-header">
+              <span class="test-name">Variant C: Tea Osmanthus</span>
+              <span class="test-badge" style="background:#E67E2233;color:var(--orange)">NEEDS REVIEW</span>
+            </div>
+            <div class="test-params">
+              <div>AI Score: <strong>45.2%</strong></div>
+              <div>Molecular: <strong>0.8923</strong></div>
+              <div>Sentiment: <strong>+38%</strong></div>
+            </div>
+            <div class="test-note">REVIEW - Validated molecularly but needs consumer testing</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3 class="card-title">Actual COGS Results (NO PROCESSING)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Variant</th>
+                <th style="text-align:right">Ingredients</th>
+                <th style="text-align:right">Packaging</th>
+                <th style="text-align:right">COGS</th>
+                <th style="text-align:right">Margin</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>A: Mango Jasmine</strong></td>
+                <td style="text-align:right">$0.142</td>
+                <td style="text-align:right">$0.085</td>
+                <td style="text-align:right;color:var(--accent-gold);font-weight:600">$0.227</td>
+                <td style="text-align:right;color:var(--medium-green)">69.2%</td>
+              </tr>
+              <tr>
+                <td><strong>B: Coconut Milk Tea</strong></td>
+                <td style="text-align:right">$0.168</td>
+                <td style="text-align:right">$0.085</td>
+                <td style="text-align:right;color:var(--accent-gold);font-weight:600">$0.253</td>
+                <td style="text-align:right;color:var(--medium-green)">67.8%</td>
+              </tr>
+              <tr>
+                <td><strong>C: Tea Osmanthus</strong></td>
+                <td style="text-align:right">$0.135</td>
+                <td style="text-align:right">$0.085</td>
+                <td style="text-align:right;color:var(--accent-gold);font-weight:600">$0.220</td>
+                <td style="text-align:right;color:var(--medium-green)">70.3%</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="note-text" style="margin-top:20px">
+            <strong style="color:var(--accent-gold)">COGS Formula:</strong><br>
+            Total COGS = Ingredients Cost + Packaging Cost<br>
+            <strong style="color:var(--gray)">Processing Cost = $0 (Excluded - handled by co-packer)</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="testing-tab" style="display:none">
+      <div class="grid">
+        <div class="card">
+          <h3 class="card-title">Sample Test Results Format (DEMONSTRATION - NOT ACTUAL LAB RESULTS)</h3>
+          
+          <div class="test-card" style="border-left-color:var(--medium-green)">
+            <div class="test-header">
+              <span class="test-name">Variant A: Mango Jasmine</span>
+              <span class="test-badge" style="background:#2E7D6033;color:var(--medium-green)">PASS</span>
+            </div>
+            <div class="test-date">Test ID: MJB-001 | Date: 2026-06-15</div>
+            <div class="test-params">
+              <div>Protein: <strong>11.8g</strong></div>
+              <div>pH: <strong>4.05</strong></div>
+              <div>Viscosity: <strong>42.5</strong></div>
+              <div>Sensory: <strong>7.2/10</strong></div>
+              <div>Microbial: <strong>850 CFU</strong></div>
+            </div>
+            <div class="test-note">Note: First bench trial - texture slightly thin, recommend KGM increase</div>
+          </div>
+          
+          <div class="test-card" style="border-left-color:var(--medium-green)">
+            <div class="test-header">
+              <span class="test-name">Variant A: Mango Jasmine</span>
+              <span class="test-badge" style="background:#2E7D6033;color:var(--medium-green)">PASS</span>
+            </div>
+            <div class="test-date">Test ID: MJB-002 | Date: 2026-06-20</div>
+            <div class="test-params">
+              <div>Protein: <strong>12.1g</strong></div>
+              <div>pH: <strong>3.98</strong></div>
+              <div>Viscosity: <strong>58.2</strong></div>
+              <div>Sensory: <strong>7.8/10</strong></div>
+              <div>Microbial: <strong>420 CFU</strong></div>
+            </div>
+            <div class="test-note">Note: KGM adjusted to 0.15% - improved texture, acceptable mouthfeel</div>
+          </div>
+          
+          <div class="test-card" style="border-left-color:var(--medium-green)">
+            <div class="test-header">
+              <span class="test-name">Variant B: Coconut Milk Tea</span>
+              <span class="test-badge" style="background:#2E7D6033;color:var(--medium-green)">PASS</span>
+            </div>
+            <div class="test-date">Test ID: CMT-001 | Date: 2026-06-16</div>
+            <div class="test-params">
+              <div>Protein: <strong>11.9g</strong></div>
+              <div>pH: <strong>4.02</strong></div>
+              <div>Viscosity: <strong>55.8</strong></div>
+              <div>Sensory: <strong>7.5/10</strong></div>
+              <div>Microbial: <strong>680 CFU</strong></div>
+            </div>
+            <div class="test-note">Note: Coconut flavor dominant - may need jasmine adjustment for balance</div>
+          </div>
+          
+          <div class="test-card" style="border-left-color:var(--medium-green)">
+            <div class="test-header">
+              <span class="test-name">Variant B: Coconut Milk Tea</span>
+              <span class="test-badge" style="background:#2E7D6033;color:var(--medium-green)">PASS</span>
+            </div>
+            <div class="test-date">Test ID: CMT-002 | Date: 2026-06-22</div>
+            <div class="test-params">
+              <div>Protein: <strong>12.3g</strong></div>
+              <div>pH: <strong>3.95</strong></div>
+              <div>Viscosity: <strong>62.1</strong></div>
+              <div>Sensory: <strong>8.1/10</strong></div>
+              <div>Microbial: <strong>320 CFU</strong></div>
+            </div>
+            <div class="test-note">Note: Optimal batch - balanced coconut/milk tea profile</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h3 class="card-title">Ingredient Reference (33 items - Real Supplier Prices)</h3>
+          
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Purified Water</span><span class="ing-zh">纯净水</span></div>
+              <div class="ing-cost"><span class="ing-price">$0.15/kg</span><div class="ing-supplier">Local supplier</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Fermented Milk Base</span><span class="ing-zh">发酵乳基底</span></div>
+              <div class="ing-cost"><span class="ing-price">$3.20/kg</span><div class="ing-supplier">Yili / Mengniu</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Whey Protein Isolate 90%</span><span class="ing-zh">乳清蛋白分离物</span></div>
+              <div class="ing-cost"><span class="ing-price">$18.50/kg</span><div class="ing-supplier">FrieslandCampina</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Coconut Milk UHT</span><span class="ing-zh">椰浆UHT</span></div>
+              <div class="ing-cost"><span class="ing-price">$5.80/kg</span><div class="ing-supplier">Thai Coconut / Aroy-D</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Low Methoxyl Pectin</span><span class="ing-zh">低甲氧基果胶</span></div>
+              <div class="ing-cost"><span class="ing-price">$18.20/kg</span><div class="ing-supplier">CP Kelco</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Konjac Glucomannan</span><span class="ing-zh">卡拉胶</span></div>
+              <div class="ing-cost"><span class="ing-price">$22.00/kg</span><div class="ing-supplier">Shimizu (Japan)</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Erythritol</span><span class="ing-zh">赤藓糖醇</span></div>
+              <div class="ing-cost"><span class="ing-price">$4.20/kg</span><div class="ing-supplier">Bolasia (China)</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Monk Fruit Extract 25%</span><span class="ing-zh">罗汉果</span></div>
+              <div class="ing-cost"><span class="ing-price">$180.00/kg</span><div class="ing-supplier">Layn (China)</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Natural Mango Extract</span><span class="ing-zh">芒果提取物</span></div>
+              <div class="ing-cost"><span class="ing-price">$95.00/kg</span><div class="ing-supplier">Kerry</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Jasmine Tea Extract</span><span class="ing-zh">茉莉花茶</span></div>
+              <div class="ing-cost"><span class="ing-price">$120.00/kg</span><div class="ing-supplier">Givaudan</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Natural Coconut Flavor</span><span class="ing-zh">椰子香精</span></div>
+              <div class="ing-cost"><span class="ing-price">$85.00/kg</span><div class="ing-supplier">Kerry</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">Milk Tea Flavor</span><span class="ing-zh">奶茶香精</span></div>
+              <div class="ing-cost"><span class="ing-price">$110.00/kg</span><div class="ing-supplier">Takasago</div></div>
+            </div>
+          </div>
+          <div class="ing-item">
+            <div class="ing-header">
+              <div><span class="ing-name">L. acidophilus</span><span class="ing-zh">嗜酸乳杆菌</span></div>
+              <div class="ing-cost"><span class="ing-price">$850.00/kg</span><div class="ing-supplier">Chr. Hansen</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      MoBai R&D Dashboard v2.1 | Formulation + COGS (NO Processing) | Real Sample Data | Last Updated: June 2026
+    </div>
+  </div>
+  
+  <script>
+    function showTab(tab) {
+      document.getElementById('formulation-tab').style.display = tab === 'formulation' ? 'block' : 'none';
+      document.getElementById('cogs-tab').style.display = tab === 'cogs' ? 'block' : 'none';
+      document.getElementById('testing-tab').style.display = tab === 'testing' ? 'block' : 'none';
+      
+      document.querySelectorAll('.tab').forEach((btn, i) => {
+        btn.classList.toggle('active', ['formulation', 'cogs', 'testing'][i] === tab);
+      });
+    }
+    
+    function selectVariant(v) {
+      document.querySelectorAll('.variant-card').forEach((card, i) => {
+        card.classList.toggle('selected', ['A', 'B', 'C'][i] === v);
+      });
+    }
+  </script>
+</body>
+</html>

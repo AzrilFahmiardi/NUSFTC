@@ -1,11 +1,17 @@
-# NLP Social Listening (English)
+# NLP Social Listening (English and Chinese)
 
-Twitter-based consumer intelligence pipeline for the KSF high-protein beverage brief.
-It collects 5,021 clean English-language tweets across six query groups (flavour
-preferences, morning routine, sensory pain points, yogurt-drink format, consumption
-occasions, and competitor sentiment) and answers the six brief questions directly with
-mapped analyses and visualisations. It also includes K-Means consumer segmentation
-(silhouette-optimised) for the personalisation angle.
+Consumer intelligence pipeline for the KSF high-protein beverage brief, spanning two
+languages and four platforms. The English pipeline at this folder root collects 5,021
+clean English-language tweets from Twitter. The Chinese pipeline in `china/` collects
+Chinese-language posts from Weibo, Douyin, and Xiaohongshu. Both run the same six query
+groups (flavour preferences, morning routine, sensory pain points, yogurt-drink format,
+consumption occasions, and competitor sentiment), answer the six brief questions with
+mapped analyses and visualisations, and feed a joint English-and-Chinese K-Means
+consumer segmentation for the personalisation angle.
+
+The two pipelines share a common schema so their enriched datasets merge directly. This
+root folder documents the English pipeline; see `china/README.md` for the Chinese module
+(scraping strategy, language-routed sentiment, and the joint segmentation step).
 
 ## Setup
 
@@ -59,8 +65,9 @@ outputs/        figures and scraping_log.txt
 
 ## Method notes
 
-- Scope is English-only. The labels are treated as flavour-universal consumer signals,
-  with APAC and China-specific demand corroborated by separate sources.
+- This root pipeline covers the English (Twitter) corpus. China-specific demand and
+  pain-point evidence comes from the Chinese multi-platform pipeline in `china/`, whose
+  enriched output merges with this one for joint segmentation.
 - Sentiment uses VADER as the primary engine and TextBlob as a cross-validator.
   Consensus is the average of the two, and confidence is 1 minus the absolute
   difference between them.

@@ -1,0 +1,32 @@
+# nlp_social_china — Chinese multi-platform social listening (KSF / MoBai)
+# Install into conda env `ml`:  conda activate ml && pip install -r requirements.txt
+
+# ── Scraping ────────────────────────────────────────────────────────
+apify-client>=1.7.0          # Apify actors (Xiaohongshu / Weibo / Douyin fallback)
+playwright>=1.40.0           # used by MediaCrawler (self-hosted, separate uv env)
+python-dotenv>=1.0.0         # APIFY_TOKEN from .env
+tqdm>=4.66.0
+
+# ── Chinese NLP ─────────────────────────────────────────────────────
+jieba>=0.42.1                # Chinese tokenization
+snownlp>=0.12.3              # Chinese sentiment cross-validator
+transformers>=4.40.0         # RoBERTa-JD Chinese sentiment (primary)
+torch>=2.0.0                 # transformers backend (CPU build is sufficient)
+
+# ── English NLP (for en-language scraped rows; reused from sibling project) ──
+vaderSentiment>=3.3.2
+textblob>=0.17.0
+langdetect>=1.0.9
+
+# ── Analysis / Viz (shared params with sibling project) ─────────────
+scikit-learn>=1.3.0
+pandas>=2.1.0
+numpy>=1.26.0
+tabulate>=0.9.0              # pandas.DataFrame.to_markdown (insight summary)
+matplotlib>=3.8.0
+seaborn>=0.13.0
+squarify>=0.4.3
+
+# ── Notebook ────────────────────────────────────────────────────────
+jupyter>=1.0.0
+ipykernel>=6.25.0

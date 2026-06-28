@@ -80,9 +80,6 @@ reference/
 # Claude Code workspace and internal tooling
 .claude/
 
-# Subproject in active development, not yet ready for public release
-nlp_social_china/
-
 # Consumer validation survey: internal until real field responses are collected.
 # These are placeholder artifacts and must not appear in the public repo.
 flavor_pairing/notebooks/_generate_survey_sim.py
@@ -93,15 +90,15 @@ flavor_pairing/outputs/survey_liking_bar.png
 flavor_pairing/outputs/survey_results.json
 
 # ==============================================================
-# Project Specific (NLP Social China)
+# Project Specific (NLP Social China — now nlp_social_listening/china)
 # ==============================================================
-nlp_social_china/.env
+nlp_social_listening/china/.env
 # MediaCrawler clone (heavy, has its own venv)
-nlp_social_china/third_party/
+nlp_social_listening/china/third_party/
 # raw scraper dumps (bulky, regenerable)
-nlp_social_china/data/interim/
-nlp_social_china/data/raw/*.csv
-nlp_social_china/data/processed/*.csv
-nlp_social_china/data/results/*.csv
-nlp_social_china/cookies.json
-nlp_social_china/**/__pycache__/
+nlp_social_listening/china/data/interim/
+nlp_social_listening/china/data/raw/*.csv
+nlp_social_listening/china/data/processed/*.csv
+nlp_social_listening/china/data/results/*.csv
+nlp_social_listening/china/cookies.json
+nlp_social_listening/china/**/__pycache__/

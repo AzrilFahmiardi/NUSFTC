@@ -15,7 +15,8 @@ and a molecular off-note analysis informs how protein off-notes are suppressed.
 
 ```
 NUSFTC/
-├── nlp_social_listening/   Consumer intelligence from social media (English)
+├── nlp_social_listening/   Consumer intelligence from social media (English + Chinese)
+│   └── china/              Chinese-language, multi-platform module (Weibo, Douyin, Xiaohongshu)
 ├── flavor_pairing/         Molecular pairing-compatibility recommender (FlavorGraph)
 ├── flavor_masking/         Bitter-risk and off-note masking analysis (cheminformatics)
 └── README.md               This file
@@ -23,11 +24,16 @@ NUSFTC/
 
 ## The three AI components
 
-1. Consumer intelligence (`nlp_social_listening/`). Collects and analyses 5,021
-   English-language tweets across six consumer-insight dimensions: flavour
+1. Consumer intelligence (`nlp_social_listening/`). Collects and analyses consumer
+   conversation across two languages and four platforms: English from Twitter and
+   Chinese from Weibo, Douyin, and Xiaohongshu, for a combined corpus of roughly
+   6,700 posts. The analysis spans six consumer-insight dimensions: flavour
    preferences, morning routine, sensory pain points, yogurt-drink format,
-   consumption occasions, and competitor sentiment. Uses a dual-model sentiment
-   consensus (VADER and TextBlob) and K-Means consumer segmentation.
+   consumption occasions, and competitor sentiment. Sentiment is scored with a
+   dual-model consensus routed by language (VADER and TextBlob for English; a
+   RoBERTa Chinese model and SnowNLP for Chinese), and consumers are segmented with
+   K-Means both per language and on the joint English-and-Chinese corpus. The
+   Chinese module lives in `nlp_social_listening/china/`.
 
 2. Molecular pairing compatibility (`flavor_pairing/`). Uses pre-trained
    300-dimensional FlavorGraph embeddings (Park et al., 2021) to score how

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoBai Adjustable Formulation Dashboard v3.0</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --dark-green: #1B4D3E;
+      --medium-green: #2E7D60;
+      --light-green: #E8F5F0;
+      --accent-gold: #C9A227;
+      --white: #FFFFFF;
+      --black: #1A1A1A;
+      --gray: #6B7B8C;
+      --red: #C43B2B;
+      --orange: #E67E22;
+    }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, var(--dark-green) 0%, #0a1510 100%);
+      min-height: 100vh;
+      color: var(--white);
+      padding: 20px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 { font-size: 32px; margin-bottom: 8px; }
+    .subtitle { color: var(--light-green); font-size: 14px; }
+    .warning {
+      padding: 10px 16px;
+      background: #C43B2B22;
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--red);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
+    .tab.active { background: var(--accent-gold); color: var(--black); }
+    .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .btn-primary { background: var(--accent-gold); color: var(--black); }
+    .btn-secondary { background: rgba(255,255,255,0.1); color: var(--white); }
+    .btn-danger { background: var(--red); color: var(--white); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; }
+    .card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      border: 1px solid rgba(201,162,39,0.2);
+      padding: 20px;
+    }
+    .section { margin-bottom: 16px; }
+    .section-title { font-size: 14px; font-weight: 600; color: var(--accent-gold); margin-bottom: 12px; }
+    .input-group { margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 12px; color: var(--light-green); margin-bottom: 4px; }
+    input, select {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--white);
+      font-size: 14px;
+    }
+    input[type="range"] {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.1);
+      accent-color: var(--accent-gold);
+      cursor: pointer;
+    }
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metric-box { padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; text-align: center; }
+    .metric-value { font-size: 18px; font-weight: 700; }
+    .metric-label { font-size: 10px; color: var(--gray); }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: var(--gray); }
+    td { padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
+    .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+    .total-row { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1); font-weight: 600; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-right: 4px; background: #C43B2B33; color: var(--red); }
+    .ing-card { padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
+    .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); color: var(--gray); font-size: 11px; }
+    .progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+    .progress-fill { height: 100%; border-radius: 4px; background: var(--medium-green); }
+    .note { margin-top: 16px; padding: 12px; background: #1B4D3E44; border-radius: 8px; font-size: 11px; color: var(--gray); }
+    .note strong { color: var(--accent-gold); }
+    .saved-item { padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>MoBai Adjustable Formulation Dashboard</h1>
+      <p class="subtitle">Fully Customizable Formulation & COGS Calculator | NO Processing Cost | NO Hallucination</p>
+      <div class="prototype-banner" style="padding: 16px; background: #FF980033; border: 2px solid #FF9800; border-radius: 12px; margin-bottom: 20px; text-align: center; color: #FF9800; font-size: 14px; font-weight: 600;">
+        📋 CURRENT STATUS: Concept Validation Only | No physical prototype exists yet.
+        <br>
+        <span style="font-weight: normal; font-size: 12px; color: #FFE0B2;">
+          Completed: AI Validation, Consumer NLP, Molecular Verification | Pending: Bench Formulation, Sensory Testing, Pilot Production
+        </span>
+      </div>
+      <div class="warning">
+        WARNING: All values are editable. COGS = Ingredients + Packaging Only. Processing handled by co-packer separately.
+      </div>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('results')">Results</button>
+      <button class="tab" onclick="showTab('ingredients')">Ingredients</button>
+      <button class="tab" onclick="showTab('market')">Market</button>
+      <button class="tab" onclick="showTab('saved')">Saved</button>
+      <button class="btn btn-secondary" onclick="resetAll()" style="margin-left:auto">Reset</button>
+      <button class="btn btn-primary" onclick="saveFormulation()">Save</button>
+    </div>
+    
+    <!-- RESULTS TAB -->
+    <div id="results-tab">
+      <div class="grid">
+        <div class="card">
+          <div class="section">
+            <div class="section-title">Formulation Summary</div>
+            <div class="metrics-grid">
+              <div class="metric-box">
+                <div class="metric-value" id="calories">145</div>
+                <div class="metric-label">Calories</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-value" id="protein">12.0g</div>
+                <div class="metric-label">Protein</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-value" id="sugar">2.4g</div>
+                <div class="metric-label">Sugar</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-value" id="cogs" style="color:var(--accent-gold)">$0.227</div>
+                <div class="metric-label">COGS</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="section" id="allergens-section">
+            <div class="section-title">Allergens</div>
+            <span class="tag">Milk</span>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Ingredient Breakdown</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th style="text-align:right">%</th>
+                  <th style="text-align:right">Cost</th>
+                </tr>
+              </thead>
+              <tbody id="breakdown-tbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="section">
+            <div class="section-title">COGS Breakdown (No Processing)</div>
+            <div class="row"><span>Ingredients</span><span id="ing-cost">$0.142</span></div>
+            <div class="row"><span>Packaging</span><span id="pkg-cost">$0.085</span></div>
+            <div class="row" style="color:var(--gray);font-size:11px"><span>Processing</span><span style="color:var(--medium-green)">$0.000 (excluded)</span></div>
+            <div class="total-row"><span>Total COGS</span><span id="total-cogs" style="color:var(--accent-gold);font-size:18px">$0.227</span></div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Margin Analysis</div>
+            <div class="progress-bar"><div class="progress-fill" id="margin-bar" style="width:69%"></div></div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px">
+              <span style="font-size:12px;color:var(--gray)">Gross Margin</span>
+              <span id="margin-pct" style="font-size:14px;font-weight:600;color:var(--medium-green)">69.2%</span>
+            </div>
+          </div>
+          
+          <div class="metrics-grid">
+            <div class="metric-box"><div class="metric-value" id="cogs2" style="color:var(--accent-gold)">$0.227</div><div class="metric-label">COGS</div></div>
+            <div class="metric-box"><div class="metric-value" id="retail">$3.00</div><div class="metric-label">Retail</div></div>
+            <div class="metric-box"><div class="metric-value" id="wholesale">$1.80</div><div class="metric-label">Wholesale</div></div>
+            <div class="metric-box"><div class="metric-value" id="margin2" style="color:var(--medium-green)">69%</div><div class="metric-label">Margin</div></div>
+          </div>
+          
+          <div class="note">
+            <strong>Note:</strong> Processing cost handled by co-packer. Negotiate separately based on volume and facility.
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- INGREDIENTS TAB -->
+    <div id="ingredients-tab" style="display:none">
+      <div class="grid" id="ingredients-grid">
+      </div>
+    </div>
+    
+    <!-- MARKET TAB -->
+    <div id="market-tab" style="display:none">
+      <div class="grid">
+        <div class="card">
+          <div class="section-title">Product Parameters</div>
+          <div class="input-group">
+            <label>Bottle Size (mL)</label>
+            <select id="bottle-size" onchange="updateResults()">
+              <option value="200">200mL</option>
+              <option value="240" selected>240mL</option>
+              <option value="330">330mL</option>
+              <option value="500">500mL</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Target Protein (g/serving)</label>
+            <input type="number" id="target-protein" value="12" min="0" max="30" onchange="updateResults()">
+          </div>
+          <div class="input-group">
+            <label>Target pH</label>
+            <input type="number" id="target-ph" value="4.0" min="2" max="7" step="0.1" onchange="updateResults()">
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="section-title">Cost & Pricing</div>
+          <div class="input-group">
+            <label>Packaging Cost ($ per bottle)</label>
+            <input type="number" id="packaging-cost" value="0.085" min="0" max="1" step="0.001" onchange="updateResults()">
+          </div>
+          <div class="input-group">
+            <label>Target COGS Ceiling ($)</label>
+            <input type="number" id="cogs-ceiling" value="0.30" min="0" max="2" step="0.01" onchange="updateResults()">
+          </div>
+          <div class="input-group">
+            <label>Suggested Retail Price ($)</label>
+            <input type="number" id="retail-price" value="3.00" min="0" max="10" step="0.1" onchange="updateResults()">
+          </div>
+          <div class="input-group">
+            <label>Wholesale Price ($)</label>
+            <input type="number" id="wholesale-price" value="1.80" min="0" max="10" step="0.1" onchange="updateResults()">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- SAVED TAB -->
+    <div id="saved-tab" style="display:none">
+      <div class="grid">
+        <div class="card" style="grid-column:1/-1">
+          <div class="section-title">Saved Formulations (<span id="saved-count">0</span>)</div>
+          <div id="saved-list">
+            <div style="text-align:center;padding:40px;color:var(--gray)">
+              No saved formulations yet. Click "Save" to save current formulation.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      MoBai Adjustable Dashboard v3.0 | All values editable | COGS = Ingredients + Packaging (No Processing) | June 2026
+    </div>
+  </div>
+  
+  <script>
+    // INGREDIENT DATABASE (USER CAN EDIT THIS)
+    const INGREDIENTS = [
+      // BASE
+      { id: 'water', name: 'Purified Water', category: 'base', costPerKg: 0.15, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 100, default: 0 },
+      { id: 'fermented_milk', name: 'Fermented Milk Base', category: 'base', costPerKg: 3.20, calories: 58, protein: 3.2, sugar: 4.5, allergens: ['Milk'], min: 0, max: 80, default: 60 },
+      { id: 'coconut_milk', name: 'Coconut Milk UHT', category: 'base', costPerKg: 5.80, calories: 230, protein: 2.3, sugar: 3.8, allergens: [], min: 0, max: 30, default: 10 },
+      // PROTEIN
+      { id: 'wpi', name: 'Whey Protein Isolate 90%', category: 'protein', costPerKg: 18.50, calories: 375, protein: 90, sugar: 1, allergens: ['Milk'], min: 0, max: 10, default: 5 },
+      { id: 'soy_isolate', name: 'Soy Protein Isolate', category: 'protein', costPerKg: 8.50, calories: 338, protein: 88, sugar: 0, allergens: ['Soy'], min: 0, max: 10, default: 0 },
+      { id: 'pea_isolate', name: 'Pea Protein Isolate', category: 'protein', costPerKg: 12.50, calories: 360, protein: 85, sugar: 0, allergens: [], min: 0, max: 10, default: 0 },
+      // SWEETENERS
+      { id: 'erythritol', name: 'Erythritol', category: 'sweetener', costPerKg: 4.20, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 10, default: 4 },
+      { id: 'stevia', name: 'Stevia Reb-M 97%', category: 'sweetener', costPerKg: 850, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 1, default: 0 },
+      { id: 'monk_fruit', name: 'Monk Fruit Extract 25%', category: 'sweetener', costPerKg: 180, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 1, default: 0.02 },
+      // STABILIZERS
+      { id: 'pectin', name: 'Low Methoxyl Pectin', category: 'stabilizer', costPerKg: 18.20, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 1, default: 0.12 },
+      { id: 'kgm', name: 'Konjac Glucomannan', category: 'stabilizer', costPerKg: 22.00, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 1, default: 0.15 },
+      // PROBIOTICS
+      { id: 'l_acidophilus', name: 'L. acidophilus', category: 'probiotic', costPerKg: 850, calories: 0, protein: 0, sugar: 0, allergens: ['Milk'], min: 0, max: 0.1, default: 0.01 },
+      // VITAMINS
+      { id: 'vit_c', name: 'Vitamin C', category: 'vitamin', costPerKg: 12.50, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 0.5, default: 0.033 },
+      { id: 'vit_d3', name: 'Vitamin D3', category: 'vitamin', costPerKg: 2500, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 0.05, default: 0.002 },
+      // FLAVORS
+      { id: 'mango_extract', name: 'Natural Mango Extract', category: 'flavor', costPerKg: 95, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 2, default: 0.5 },
+      { id: 'jasmine_tea', name: 'Jasmine Tea Extract', category: 'flavor', costPerKg: 120, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 2, default: 0.3 },
+      { id: 'coconut_flavor', name: 'Natural Coconut Flavor', category: 'flavor', costPerKg: 85, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 2, default: 0.8 },
+      { id: 'milk_tea_flavor', name: 'Milk Tea Flavor', category: 'flavor', costPerKg: 110, calories: 0, protein: 0, sugar: 0, allergens: ['Milk'], min: 0, max: 2, default: 0.5 },
+      { id: 'green_tea_flavor', name: 'Green Tea Flavor', category: 'flavor', costPerKg: 85, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 2, default: 0.4 },
+      { id: 'osmanthus_extract', name: 'Osmanthus Extract', category: 'flavor', costPerKg: 150, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 2, default: 0.2 },
+      // ACIDULANTS
+      { id: 'citric_acid', name: 'Citric Acid Anhydrous', category: 'acidulant', costPerKg: 0.95, calories: 0, protein: 0, sugar: 0, allergens: [], min: 0, max: 1, default: 0.15 },
+      { id: 'lactic_acid', name: 'Lactic Acid 80%', category: 'acidulant', costPerKg: 2.80, calories: 0, protein: 0, sugar: 0, allergens: ['Milk'], min: 0, max: 1, default: 0.1 },
+    ];
+    
+    // State
+    let selected = {};
+    let percentages = {};
+    let savedFormulations = [];
+    
+    // Initialize
+    function init() {
+      INGREDIENTS.forEach(ing => {
+        selected[ing.id] = ing.default > 0;
+        percentages[ing.id] = ing.default;
+      });
+      renderIngredients();
+      updateResults();
+    }
+    
+    // Render ingredients by category
+    function renderIngredients() {
+      const grid = document.getElementById('ingredients-grid');
+      const categories = [...new Set(INGREDIENTS.map(i => i.category))];
+      
+      let html = '';
+      categories.forEach(cat => {
+        const cats = INGREDIENTS.filter(i => i.category === cat);
+        html += '<div class="card"><div class="section-title">' + cat.toUpperCase() + '</div>';
+        cats.forEach(ing => {
+          html += '<div class="ing-card">' +
+            '<label style="display:flex;align-items:flex-start;cursor:pointer">' +
+            '<input type="checkbox" ' + (selected[ing.id] ? 'checked' : '') + ' onchange="toggleIngredient(\'' + ing.id + '\')" style="margin-right:8px;accent-color:var(--accent-gold)">' +
+            '<div style="flex:1">' +
+            '<div style="display:flex;justify-content:space-between"><span style="font-size:13px;font-weight:500">' + ing.name + '</span><span style="font-size:12px;color:var(--accent-gold)">$' + ing.costPerKg + '/kg</span></div>' +
+            (selected[ing.id] ? 
+              '<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--light-green)"><span>Percentage:</span><span>' + percentages[ing.id].toFixed(3) + '%</span></div>' +
+              '<input type="range" min="' + ing.min + '" max="' + ing.max + '" step="' + ((ing.max - ing.min) / 100) + '" value="' + percentages[ing.id] + '" onchange="updatePercentage(\'' + ing.id + '\', this.value)" style="width:100%">' +
+              '</div>' : '') +
+            '</div></label></div>';
+        });
+        html += '</div>';
+      });
+      grid.innerHTML = html;
+    }
+    
+    // Toggle ingredient
+    function toggleIngredient(id) {
+      selected[id] = !selected[id];
+      if (selected[id] && !percentages[id]) {
+        const ing = INGREDIENTS.find(i => i.id === id);
+        percentages[id] = ing.default;
+      }
+      renderIngredients();
+      updateResults();
+    }
+    
+    // Update percentage
+    function updatePercentage(id, value) {
+      const ing = INGREDIENTS.find(i => i.id === id);
+      percentages[id] = Math.max(ing.min, Math.min(ing.max, parseFloat(value)));
+      renderIngredients();
+      updateResults();
+    }
+    
+    // Calculate and update results
+    function updateResults() {
+      const bottleSize = parseInt(document.getElementById('bottle-size').value) / 1000;
+      const packagingCost = parseFloat(document.getElementById('packaging-cost').value);
+      const retailPrice = parseFloat(document.getElementById('retail-price').value);
+      const wholesalePrice = parseFloat(document.getElementById('wholesale-price').value);
+      
+      let totalIngCost = 0;
+      let totalPct = 0;
+      let calories = 0;
+      let protein = 0;
+      let sugar = 0;
+      const allergens = new Set();
+      const breakdown = [];
+      
+      INGREDIENTS.forEach(ing => {
+        if (!selected[ing.id] || !percentages[ing.id]) return;
+        const pct = percentages[ing.id];
+        totalPct += pct;
+        
+        const costPerBottle = (ing.costPerKg * pct / 100) * bottleSize;
+        totalIngCost += costPerBottle;
+        
+        calories += (ing.calories * pct / 100) * bottleSize * 1000;
+        protein += (ing.protein * pct / 100) * bottleSize * 1000;
+        sugar += (ing.sugar * pct / 100) * bottleSize * 1000;
+        
+        ing.allergens.forEach(a => allergens.add(a));
+        breakdown.push({ name: ing.name, pct, cost: costPerBottle });
+      });
+      
+      // Add water
+      const waterPct = Math.max(0, 100 - totalPct);
+      if (waterPct > 0) {
+        const waterCost = (0.15 * waterPct / 100) * bottleSize;
+        totalIngCost += waterCost;
+        breakdown.push({ name: 'Purified Water (balance)', pct: waterPct, cost: waterCost });
+      }
+      
+      const totalCOGS = totalIngCost + packagingCost;
+      const margin = ((retailPrice - totalCOGS) / retailPrice) * 100;
+      
+      // Update DOM
+      document.getElementById('calories').textContent = Math.round(calories);
+      document.getElementById('protein').textContent = protein.toFixed(1) + 'g';
+      document.getElementById('sugar').textContent = sugar.toFixed(1) + 'g';
+      document.getElementById('cogs').textContent = '$' + totalCOGS.toFixed(3);
+      document.getElementById('cogs2').textContent = '$' + totalCOGS.toFixed(3);
+      document.getElementById('retail').textContent = '$' + retailPrice.toFixed(2);
+      document.getElementById('wholesale').textContent = '$' + wholesalePrice.toFixed(2);
+      document.getElementById('margin-pct').textContent = margin.toFixed(1) + '%';
+      document.getElementById('margin2').textContent = Math.round(margin) + '%';
+      document.getElementById('margin-bar').style.width = margin + '%';
+      document.getElementById('margin-bar').style.background = margin >= 60 ? 'var(--medium-green)' : 'var(--orange)';
+      document.getElementById('margin-pct').style.color = margin >= 60 ? 'var(--medium-green)' : 'var(--orange)';
+      document.getElementById('ing-cost').textContent = '$' + totalIngCost.toFixed(4);
+      document.getElementById('pkg-cost').textContent = '$' + packagingCost.toFixed(4);
+      document.getElementById('total-cogs').textContent = '$' + totalCOGS.toFixed(3);
+      
+      // Allergens
+      const allergenHtml = allergens.size > 0 ? 
+        Array.from(allergens).map(a => '<span class="tag">' + a + '</span>').join('') : 
+        '<span style="color:var(--gray);font-size:12px">No allergens</span>';
+      document.getElementById('allergens-section').innerHTML = '<div class="section-title">Allergens</div>' + allergenHtml;
+      
+      // Breakdown
+      breakdown.sort((a, b) => b.cost - a.cost);
+      document.getElementById('breakdown-tbody').innerHTML = breakdown.map(b => 
+        '<tr><td>' + b.name + '</td><td style="text-align:right;font-weight:500">' + b.pct.toFixed(2) + '%</td><td style="text-align:right;color:var(--gray)">$' + b.cost.toFixed(4) + '</td></tr>'
+      ).join('');
+    }
+    
+    // Tab navigation
+    function showTab(tab) {
+      ['results', 'ingredients', 'market', 'saved'].forEach(t => {
+        document.getElementById(t + '-tab').style.display = t === tab ? 'block' : 'none';
+        document.querySelectorAll('.tab')[t === 'results' ? 0 : t === 'ingredients' ? 1 : t === 'market' ? 2 : 3].classList.toggle('active', t === tab);
+      });
+    }
+    
+    // Save formulation
+    function saveFormulation() {
+      const name = prompt('Enter formulation name:', 'Custom Formulation');
+      if (!name) return;
+      savedFormulations.push({
+        name,
+        date: new Date().toISOString().split('T')[0],
+        selected: {...selected},
+        percentages: {...percentages}
+      });
+      document.getElementById('saved-count').textContent = savedFormulations.length;
+      document.getElementById('saved-list').innerHTML = savedFormulations.map((s, i) => 
+        '<div class="saved-item"><div><div style="font-size:14px;font-weight:600">' + s.name + '</div><div style="font-size:11px;color:var(--gray)">' + s.date + '</div></div><button class="btn btn-secondary" onclick="loadFormulation(' + i + ')">Load</button></div>'
+      ).join('');
+      alert('Formulation "' + name + '" saved!');
+    }
+    
+    // Load formulation
+    function loadFormulation(index) {
+      const s = savedFormulations[index];
+      selected = {...s.selected};
+      percentages = {...s.percentages};
+      renderIngredients();
+      updateResults();
+      showTab('results');
+    }
+    
+    // Reset
+    function resetAll() {
+      INGREDIENTS.forEach(ing => {
+        selected[ing.id] = ing.default > 0;
+        percentages[ing.id] = ing.default;
+      });
+      document.getElementById('bottle-size').value = 240;
+      document.getElementById('packaging-cost').value = 0.085;
+      document.getElementById('retail-price').value = 3.00;
+      document.getElementById('wholesale-price').value = 1.80;
+      document.getElementById('target-protein').value = 12;
+      document.getElementById('target-ph').value = 4.0;
+      document.getElementById('cogs-ceiling').value = 0.30;
+      renderIngredients();
+      updateResults();
+    }
+    
+    init();
+  </script>
+</body>
+</html>

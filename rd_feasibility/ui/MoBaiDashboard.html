@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoBai 茉白 - Formulation & COGS Predictor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --dark-green: #1B4D3E;
+      --medium-green: #2E7D60;
+      --light-green: #E8F5F0;
+      --accent-gold: #C9A227;
+      --white: #FFFFFF;
+      --black: #1A1A1A;
+      --gray: #6B7B8C;
+      --light-gray: #F5F5F5;
+      --red: #C43B2B;
+      --orange: #E67E22;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, var(--dark-green) 0%, #0f2920 100%);
+      min-height: 100vh;
+      color: var(--white);
+      padding: 24px;
+    }
+    
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    .header { text-align: center; margin-bottom: 32px; }
+    .header h1 { font-size: 36px; margin-bottom: 8px; }
+    .header .subtitle { color: var(--light-green); opacity: 0.9; }
+    .header .note { font-size: 12px; color: var(--accent-gold); margin-top: 4px; }
+    
+    .variant-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .variant-card {
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(255,255,255,0.02);
+      border: 2px solid transparent;
+    }
+    
+    .variant-card.selected { border-color: var(--accent-gold); }
+    .variant-card.selected.variant-a { background: linear-gradient(135deg, #2E7D6022 0%, #2E7D6011 100%); }
+    .variant-card.selected.variant-b { background: linear-gradient(135deg, #C9A22722 0%, #C9A22711 100%); }
+    .variant-card.selected.variant-c { background: linear-gradient(135deg, #E67E2222 0%, #E67E2211 100%); }
+    
+    .variant-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .variant-name { font-size: 14px; font-weight: 600; }
+    .variant-score { 
+      padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      background: var(--medium-green); color: white;
+    }
+    .variant-stats { display: flex; gap: 16px; font-size: 12px; color: var(--gray); }
+    
+    .main-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 24px;
+    }
+    
+    .card {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid #C9A22733;
+      padding: 24px;
+    }
+    
+    .card-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+    
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 13px; color: var(--light-green); margin-bottom: 6px; }
+    
+    input[type="range"] {
+      width: 100%; height: 6px; border-radius: 3px;
+      background: rgba(255,255,255,0.1); cursor: pointer;
+      -webkit-appearance: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px;
+      border-radius: 50%; background: var(--accent-gold); cursor: pointer;
+    }
+    
+    .checkbox-group { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .checkbox-group input { accent-color: var(--accent-gold); width: 16px; height: 16px; }
+    .checkbox-group span { font-size: 14px; }
+    
+    .btn {
+      width: 100%; padding: 14px 24px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--accent-gold) 0%, #D4AF37 100%);
+      color: var(--black); font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px;
+    }
+    
+    .nutrition-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;
+    }
+    .nutrition-item {
+      text-align: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;
+    }
+    .nutrition-value { font-size: 20px; font-weight: 700; }
+    .nutrition-label { font-size: 10px; color: var(--gray); }
+    
+    .allergen-tag {
+      display: inline-block; padding: 3px 8px; border-radius: 6px;
+      font-size: 10px; background: #C43B2B33; color: var(--red); margin-right: 4px;
+    }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th { text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: var(--light-green); }
+    td { padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+    
+    .cost-row { display: flex; justify-content: space-between; padding: 8px 0; }
+    .cost-total { display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
+    
+    .margin-box {
+      background: linear-gradient(135deg, #1B4D3E44 0%, #2E7D6022 100%);
+      border-radius: 12px; padding: 16px; margin-bottom: 16px;
+    }
+    .margin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .margin-item { text-align: center; }
+    .margin-value { font-size: 18px; font-weight: 700; }
+    .margin-label { font-size: 10px; color: var(--gray); }
+    
+    .progress-bar {
+      height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); overflow: hidden; margin-bottom: 12px;
+    }
+    .progress-fill { height: 100%; border-radius: 4px; background: var(--medium-green); transition: width 0.5s; }
+    
+    .rationale { font-size: 11px; color: var(--light-green); margin-bottom: 4px; line-height: 1.5; }
+    
+    .ingredient-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 16px;
+    }
+    .ingredient-item {
+      padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .ingredient-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .ingredient-zh { font-size: 11px; color: var(--gray); margin-bottom: 4px; }
+    .ingredient-cost { font-size: 11px; color: var(--accent-gold); }
+    
+    .footer {
+      text-align: center; margin-top: 40px; padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.05); color: var(--gray); font-size: 12px;
+    }
+    
+    .claims-box {
+      padding: 12px; background: #1B4D3E44; border-radius: 8px; margin-top: 16px;
+    }
+    .claims-title { font-size: 12px; color: var(--accent-gold); font-weight: 600; margin-bottom: 4px; }
+    .claims-content { font-size: 11px; color: var(--gray); line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>MoBai 茉白</h1>
+      <p class="subtitle">AI-Powered Formulation & COGS Predictor | Protein Yogurt RTD Platform</p>
+      <p class="note">Simplified: Formulation + Cost Only (No Processing Stage)</p>
+    </div>
+    
+    <div class="variant-grid">
+      <div class="variant-card variant-a selected" onclick="selectVariant('A')">
+        <div class="variant-header">
+          <span class="variant-name">Variant A: Mango Jasmine</span>
+          <span class="variant-score">92%</span>
+        </div>
+        <div class="variant-stats">
+          <span>Protein: 12g</span>
+          <span>COGS: $0.28</span>
+          <span>Margin: 68%</span>
+        </div>
+      </div>
+      
+      <div class="variant-card variant-b" onclick="selectVariant('B')">
+        <div class="variant-header">
+          <span class="variant-name">Variant B: Coconut Milk Tea</span>
+          <span class="variant-score">89%</span>
+        </div>
+        <div class="variant-stats">
+          <span>Protein: 12g</span>
+          <span>COGS: $0.31</span>
+          <span>Margin: 65%</span>
+        </div>
+      </div>
+      
+      <div class="variant-card variant-c" onclick="selectVariant('C')">
+        <div class="variant-header">
+          <span class="variant-name">Variant C: Tea Osmanthus</span>
+          <span class="variant-score">85%</span>
+        </div>
+        <div class="variant-stats">
+          <span>Protein: 12g</span>
+          <span>COGS: $0.27</span>
+          <span>Margin: 70%</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="main-grid">
+      <div class="card">
+        <h3 class="card-title">Target Parameters</h3>
+        
+        <div class="input-group">
+          <label>Target Protein: <span id="proteinValue">12</span>g per serving</label>
+          <input type="range" min="0" max="20" value="12" id="proteinSlider" oninput="updateProtein()">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray)">
+            <span>0g</span><span>20g</span>
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label>Sweetener Option</label>
+          <label class="checkbox-group">
+            <input type="checkbox" id="sugarFree" checked>
+            <span>Sugar-Free (Erythritol + Monk Fruit)</span>
+          </label>
+        </div>
+        
+        <div class="claims-box">
+          <div class="claims-title">Health Claims Stack</div>
+          <div class="claims-content">
+            • Source of Protein: ≥3g/100ml<br>
+            • Vitamin C: ≥7.5mg/100ml (80mg/serve)<br>
+            • Vitamin D: ≥0.75µg/100ml (5µg/serve)<br>
+            • Live Probiotics: ≥10⁶ CFU/ml<br>
+            • Dietary Fiber (KGM): ≥1.5g/100ml
+          </div>
+        </div>
+        
+        <div class="claims-box">
+          <div class="claims-title">Processing: HTST Pasteurization</div>
+          <div class="claims-content">
+            72°C/15s → Rapid cooling to 4-10°C<br>
+            Probiotic viability: Post-heating addition<br>
+            Shelf life: 28 days (chilled)
+          </div>
+        </div>
+        
+        <button class="btn" onclick="generateFormulation()">Generate Formulation</button>
+      </div>
+      
+      <div class="card">
+        <h3 class="card-title" id="variantTitle">Variant A: Mango Jasmine 芒果茉莉</h3>
+        <span class="variant-score" id="scoreBadge" style="float:right;margin-top:-30px">92%</span>
+        
+        <div class="nutrition-grid">
+          <div class="nutrition-item">
+            <div class="nutrition-value" id="calories">145</div>
+            <div class="nutrition-label">Calories</div>
+          </div>
+          <div class="nutrition-item" style="background:#2E7D6022">
+            <div class="nutrition-value" style="color:var(--medium-green)" id="protein">12.0g</div>
+            <div class="nutrition-label">Protein</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-value" id="sugar">2.4g</div>
+            <div class="nutrition-label">Sugar</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="nutrition-value" id="fiber">0.7g</div>
+            <div class="nutrition-label">Fiber</div>
+          </div>
+        </div>
+        
+        <div style="margin-bottom:16px">
+          <span class="allergen-tag">Milk</span>
+        </div>
+        
+        <h4 style="font-size:13px;font-weight:600;color:var(--light-green);margin-bottom:8px">Formulation</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Ingredient</th>
+              <th style="text-align:right">%</th>
+              <th style="text-align:right">Cost</th>
+            </tr>
+          </thead>
+          <tbody id="ingredientTable">
+            <tr><td>Fermented Milk Base</td><td style="text-align:right">62.00%</td><td style="text-align:right">$0.050</td></tr>
+            <tr><td>Whey Protein Isolate 90%</td><td style="text-align:right">5.20%</td><td style="text-align:right">$0.024</td></tr>
+            <tr><td>Low Methoxyl Pectin</td><td style="text-align:right">0.12%</td><td style="text-align:right">$0.001</td></tr>
+            <tr><td>Konjac Glucomannan</td><td style="text-align:right">0.15%</td><td style="text-align:right">$0.001</td></tr>
+            <tr><td>Erythritol</td><td style="text-align:right">4.00%</td><td style="text-align:right">$0.004</td></tr>
+            <tr><td>Monk Fruit Extract</td><td style="text-align:right">0.02%</td><td style="text-align:right">$0.001</td></tr>
+            <tr><td>Natural Mango Extract</td><td style="text-align:right">0.50%</td><td style="text-align:right">$0.001</td></tr>
+            <tr><td>Jasmine Tea Extract</td><td style="text-align:right">0.30%</td><td style="text-align:right">$0.001</td></tr>
+            <tr><td>Vitamin C</td><td style="text-align:right">0.03%</td><td style="text-align:right">$0.001</td></tr>
+            <tr><td>Vitamin D3</td><td style="text-align:right">0.002%</td><td style="text-align:right">$0.001</td></tr>
+            <tr><td>L. acidophilus</td><td style="text-align:right">0.01%</td><td style="text-align:right">$0.002</td></tr>
+            <tr><td>Citric Acid</td><td style="text-align:right">0.15%</td><td style="text-align:right">$0.001</td></tr>
+            <tr><td>Lactic Acid</td><td style="text-align:right">0.10%</td><td style="text-align:right">$0.001</td></tr>
+          </tbody>
+        </table>
+        
+        <h4 style="font-size:13px;font-weight:600;color:var(--light-green);margin:20px 0 8px">Cost Breakdown (per 240mL)</h4>
+        <div class="cost-row"><span style="color:var(--gray)">Ingredients</span><span>$0.092</span></div>
+        <div class="cost-row"><span style="color:var(--gray)">Packaging (PET)</span><span>$0.080</span></div>
+        <div class="cost-row"><span style="color:var(--gray)">Processing (HTST)</span><span>$0.060</span></div>
+        <div class="cost-total">
+          <span style="font-weight:600">Total COGS</span>
+          <span style="font-weight:700;color:var(--accent-gold)">$0.232</span>
+        </div>
+        
+        <div class="margin-box">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--light-green)">Margin Analysis</h4>
+          <div class="progress-bar"><div class="progress-fill" style="width:68%"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+            <span style="font-size:12px;color:var(--light-green)">Gross Margin</span>
+            <span style="font-size:12px;font-weight:600">68%</span>
+          </div>
+          <div class="margin-grid">
+            <div class="margin-item">
+              <div class="margin-value">$3.00</div>
+              <div class="margin-label">Suggested Retail (SGD)</div>
+            </div>
+            <div class="margin-item">
+              <div class="margin-value" style="color:var(--accent-gold)">$1.80</div>
+              <div class="margin-label">Wholesale (SGD)</div>
+            </div>
+          </div>
+        </div>
+        
+        <h4 style="font-size:12px;font-weight:600;color:var(--medium-green);margin-bottom:8px">AI Rationale</h4>
+        <p class="rationale">• Fermented milk base provides yogurt matrix and lactic acid masking</p>
+        <p class="rationale">• Whey Protein Isolate: 12.0g per serving for premium protein claim</p>
+        <p class="rationale">• Low Methoxyl Pectin: WPI stabilizer at pH 3.8-4.2</p>
+        <p class="rationale">• Konjac Glucomannan: Texture control + volatile entrapment</p>
+        <p class="rationale">• Natural Mango Extract: Bright, fruity tropical notes</p>
+        <p class="rationale">• Jasmine Tea Extract: Floral, tea-inspired aroma</p>
+        <p class="rationale">• Lactobacillus acidophilus: Gut health claim (≥10⁷ CFU/ml)</p>
+      </div>
+    </div>
+    
+    <div class="card" style="margin-top:24px">
+      <h3 class="card-title">MoBai Ingredient Reference (40+ ingredients)</h3>
+      <div class="ingredient-grid">
+        <div class="ingredient-item">
+          <div class="ingredient-name">Purified Water</div>
+          <div class="ingredient-zh">纯净水</div>
+          <div class="ingredient-cost">$0.15/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Fermented Milk Base</div>
+          <div class="ingredient-zh">发酵乳基底</div>
+          <div class="ingredient-cost">$3.20/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Whey Protein Isolate 90%</div>
+          <div class="ingredient-zh">乳清蛋白分离物</div>
+          <div class="ingredient-cost">$18.50/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Low Methoxyl Pectin</div>
+          <div class="ingredient-zh">低甲氧基果胶</div>
+          <div class="ingredient-cost">$18.20/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Konjac Glucomannan</div>
+          <div class="ingredient-zh">卡拉胶</div>
+          <div class="ingredient-cost">$22.00/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Erythritol</div>
+          <div class="ingredient-zh">赤藓糖醇</div>
+          <div class="ingredient-cost">$4.20/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Natural Mango Extract</div>
+          <div class="ingredient-zh">天然芒果提取物</div>
+          <div class="ingredient-cost">$95.00/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Jasmine Tea Extract</div>
+          <div class="ingredient-zh">茉莉花茶提取物</div>
+          <div class="ingredient-cost">$120.00/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Natural Coconut Flavor</div>
+          <div class="ingredient-zh">天然椰子香精</div>
+          <div class="ingredient-cost">$85.00/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Milk Tea Flavor</div>
+          <div class="ingredient-zh">奶茶香精</div>
+          <div class="ingredient-cost">$110.00/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Green Tea Flavor</div>
+          <div class="ingredient-zh">绿茶香精</div>
+          <div class="ingredient-cost">$85.00/kg</div>
+        </div>
+        <div class="ingredient-item">
+          <div class="ingredient-name">Osmanthus Extract</div>
+          <div class="ingredient-zh">桂花提取物</div>
+          <div class="ingredient-cost">$150.00/kg</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      MoBai Formulation & COGS Predictor v2.0 | Simplified: Formulation + Cost Only | No Processing Stage
+    </div>
+  </div>
+  
+  <script>
+    let selectedVariant = 'A';
+    let protein = 12;
+    
+    function selectVariant(v) {
+      selectedVariant = v;
+      document.querySelectorAll('.variant-card').forEach((card, i) => {
+        card.classList.toggle('selected', ['A','B','C'][i] === v);
+      });
+      generateFormulation();
+    }
+    
+    function updateProtein() {
+      protein = parseInt(document.getElementById('proteinSlider').value);
+      document.getElementById('proteinValue').textContent = protein;
+    }
+    
+    function generateFormulation() {
+      // Simplified - in real app this would calculate from ingredient database
+      const variantNames = {
+        'A': 'Variant A: Mango Jasmine 芒果茉莉',
+        'B': 'Variant B: Coconut Milk Tea 椰香奶茶',
+        'C': 'Variant C: Tea Osmanthus 茶桂'
+      };
+      document.getElementById('variantTitle').textContent = variantNames[selectedVariant];
+    }
+  </script>
+</body>
+</html>

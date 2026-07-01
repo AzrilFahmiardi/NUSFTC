@@ -24,7 +24,7 @@ export default function Home() {
           <MoleculeField />
         </div>
         <div>
-          <p className="section-eyebrow">MoBai N54 - KSF Global Innovation Challenge 2026</p>
+          <p className="section-eyebrow">MoBai N54 - NUS FoodTech Challenge 2026</p>
           <h1><span className="shimmer">An AI engine that turns consumer conversation into validated flavour.</span></h1>
           <p className="jlead">
             MoBai is an AI flavour-personalisation engine. It listens to bilingual social conversation, screens the

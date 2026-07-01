@@ -88,8 +88,6 @@ flavor_pairing/data/survey_responses_simulated.csv
 flavor_pairing/outputs/survey_compatibility_vs_liking.png
 flavor_pairing/outputs/survey_liking_bar.png
 flavor_pairing/outputs/survey_results.json
-# Web app validation data derived from the private survey (keep out of repo)
-mobai-web/app/data/survey.json
 
 # ==============================================================
 # Project Specific (NLP Social China — now nlp_social_listening/china)

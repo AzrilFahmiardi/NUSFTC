@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd mobai-web && npm install && npm run build",
-  "outputDirectory": "mobai-web/.next",
-  "installCommand": "echo 'deps handled in buildCommand'",
-  "framework": "nextjs"
-}
